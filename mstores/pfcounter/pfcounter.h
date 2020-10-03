@@ -24,6 +24,8 @@ extern "C" {
 #define PFCOUNTER_PAGE_SIZE (1 << PFCOUNTER_PAGE_BITS)
 #define PFCOUNTER_PAGE_OFFSET_MASK (PFCOUNTER_PAGE_SIZE - 1)
 
+#define MAC_BYTE_SIZE 16
+
 //Callback API
 void* pfcounter_mstore_alloc(size_t size, void* private_data);
 void pfcounter_mstore_free(void* ptr);
