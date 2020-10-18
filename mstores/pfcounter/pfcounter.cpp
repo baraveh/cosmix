@@ -56,6 +56,9 @@ unsigned char *try_evict_page(item_t *pce) {
     if (m_ref_count[page_index * 2 + 1]) {
         INC_COUNTER(g_evictions);
         m_ref_count[page_index * 2 + 1] = 0;
+
+        unsigned char* ram_page_ptr = (unsigned char*)(g_base_pfcounter_bs_ptr + page_index * PFCOUNTER_PAGE_SIZE);
+        memcpy(ram_page_ptr, epc_page_ptr, PFCOUNTER_PAGE_SIZE); //copy the data from epc to ram
     }
 
     g_page_table->remove(page_index);
@@ -184,6 +187,8 @@ void *pfcounter_mpf_handler_c(void *bs_page) {
     }
 
     int free_epc_page_index = ((uintptr_t) free_epc_ptr - g_pfcounter_base_page_cache_ptr) / PFCOUNTER_PAGE_SIZE;
+   /* unsigned char* ram_page_ptr = (unsigned char*)(g_base_pfcounter_bs_ptr + bs_page_index * PFCOUNTER_PAGE_SIZE);
+    memcpy(free_epc_ptr, ram_page_ptr, PFCOUNTER_PAGE_SIZE); */
 
     // Try add to cache, if other ptr already added while we worked on it - just return it as a minor, and return our page to the free pages pool.
     if (!g_page_table->try_add(bs_page_index, free_epc_page_index, dirty)) {
@@ -213,7 +218,7 @@ void pfcounter_flush(void *ptr, size_t size) {
             // found it, evict
             unsigned char *epc_page_ptr = (unsigned char *) (g_pfcounter_base_page_cache_ptr +
                                                              it->epc_page_index * PFCOUNTER_PAGE_SIZE);
-            //TODO figure this out
+            memcpy(curr_page, epc_page_ptr, PFCOUNTER_PAGE_SIZE);
         }
     }
 }
