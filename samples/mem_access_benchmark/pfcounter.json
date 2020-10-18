@@ -1,0 +1,16 @@
+{
+  "mstores": [
+    {
+      "name" : "pfcounter",
+      "annotation_symbol": "pfcounter",
+      "function_annotation_name": "__cosmix_pfcounter_annotation",
+      "type": "cached",
+      "storage": "mem",
+      "TLB" : true,
+      "EvictThread" : true,
+      "BoundsAllocation": false,
+      "LowerBound": 10,
+      "UpperBound": 100000000
+    }
+  ]
+}
