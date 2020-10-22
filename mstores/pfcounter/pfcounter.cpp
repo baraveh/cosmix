@@ -46,7 +46,6 @@ uintptr_t g_pfcounter_base_page_cache_ptr;
 
 volatile char *volatile m_ref_count;
 
-
 unsigned char *try_evict_page(item_t *pce) {
     int page_index = pce->bs_page_index;
     unsigned char *epc_page_ptr = (unsigned char *) (g_pfcounter_base_page_cache_ptr +
@@ -187,8 +186,12 @@ void *pfcounter_mpf_handler_c(void *bs_page) {
     }
 
     int free_epc_page_index = ((uintptr_t) free_epc_ptr - g_pfcounter_base_page_cache_ptr) / PFCOUNTER_PAGE_SIZE;
-   /* unsigned char* ram_page_ptr = (unsigned char*)(g_base_pfcounter_bs_ptr + bs_page_index * PFCOUNTER_PAGE_SIZE);
-    memcpy(free_epc_ptr, ram_page_ptr, PFCOUNTER_PAGE_SIZE); */
+
+    // if the page isn't dirty, update from ram
+    if (!(m_ref_count[bs_page_index * 2 + 1])) {
+        unsigned char* ram_page_ptr = (unsigned char*)(g_base_pfcounter_bs_ptr + bs_page_index * PFCOUNTER_PAGE_SIZE);
+        memcpy(free_epc_ptr, ram_page_ptr, PFCOUNTER_PAGE_SIZE); //copy the data from ram to epc
+    }
 
     // Try add to cache, if other ptr already added while we worked on it - just return it as a minor, and return our page to the free pages pool.
     if (!g_page_table->try_add(bs_page_index, free_epc_page_index, dirty)) {
