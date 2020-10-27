@@ -57,7 +57,6 @@ run: all
 
 pfcounter.bc : pfcounter.cpp
 	$(CLANG_PATH)/clang++ $(Samples_Cpp_Flags) -fpie -fPIC $(Samples_Include_Paths) -emit-llvm -c $< -o $@
-	$(shell ln -s $(SGX_SDK)/lib64/libsgx_tcrypto.a ../../libs/)
 
 clean:
 	rm -f *.a *.o *.bc
