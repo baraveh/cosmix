@@ -178,7 +178,7 @@ void *pfcounter_mpf_handler_c(void *bs_page) {
     unsigned char *free_epc_ptr = pop_free_page(&g_pfcounter_page_cache);
 
     // No page available, need to evict
-    if (free_epc_ptr == nullptr) {
+    if (!free_epc_ptr) {
 
         item_t *page_to_evict = g_page_table->get_page_index_to_evict(m_ref_count);
         free_epc_ptr = try_evict_page(page_to_evict);
