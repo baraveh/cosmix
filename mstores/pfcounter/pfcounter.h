@@ -30,7 +30,6 @@ extern "C" {
 void* pfcounter_mstore_alloc(size_t size, void* private_data);
 void pfcounter_mstore_free(void* ptr);
 size_t pfcounter_mstore_alloc_size(void* ptr);
-size_t pfcounter_mstore_get_mpage_size();
 
 int pfcounter_mstore_init(void* priv_data);
 int pfcounter_mstore_cleanup();
@@ -40,6 +39,13 @@ void* pfcounter_mpf_handler_c(void* bs_page);
 void pfcounter_flush(void* ptr, size_t size);
 void pfcounter_notify_tlb_cached(void* ptr);
 void pfcounter_notify_tlb_dropped(void* ptr, bool dirty);
+
+
+// Encapsulate mstorage, mpage_cache, and mpage_size
+uintptr_t pfcounter_mstore_get_mpage_cache_base_ptr();
+uintptr_t pfcounter_mstore_get_mstorage_page(uintptr_t ptr);
+size_t pfcounter_mstore_get_mpage_size();
+int pfcounter_mstore_get_mpage_bits();
 
 
 #ifdef __cplusplus

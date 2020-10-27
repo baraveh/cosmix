@@ -161,8 +161,24 @@ size_t pfcounter_mstore_alloc_size(void *ptr) {
     return res;
 }
 
-size_t pfcounter_mstore_get_mpage_size() {
+uintptr_t pfcounter_mstore_get_mpage_cache_base_ptr()
+{
+    return g_pfcounter_base_page_cache_ptr;
+}
+
+uintptr_t pfcounter_mstore_get_mstorage_page(uintptr_t ptr)
+{
+    return ptr - g_base_pfcounter_bs_ptr;
+}
+
+size_t pfcounter_mstore_get_mpage_size()
+{
     return PFCOUNTER_PAGE_SIZE;
+}
+
+int pfcounter_mstore_get_mpage_bits()
+{
+    return PFCOUNTER_PAGE_BITS;
 }
 
 // Page fault routine - gets a pointer to the BS and returns a pointer to PFCOUNTER's cache in EPC.
