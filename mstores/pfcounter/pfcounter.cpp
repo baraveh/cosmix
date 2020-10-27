@@ -12,8 +12,6 @@
 #include <vector>
 #include <assert.h>
 #include  <math.h>
-#include <sgx_tcrypto.h>
-#include <sgx_trts.h>
 #include <time.h>
 
 #ifndef SDK_BUILD
