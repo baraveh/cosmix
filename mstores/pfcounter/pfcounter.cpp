@@ -1,14 +1,26 @@
 #include "pfcounter.h"
 #include "../common/mem_allocator.h"
+#include "../common/SyncUtils.h"
 #include "../common/PageTable.h"
 #include "../common/page_cache.h"
 #include "../common/mstore_common.h"
+#include "../../include/common.h"
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
+#include <stdio.h>      /* vsnprintf */
 #include <vector>
+#include <assert.h>
+#include  <math.h>
+#include <sgx_tcrypto.h>
+#include <sgx_trts.h>
+#include <time.h>
 
 #ifndef SDK_BUILD
+#include <pthread.h>
+#include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 
@@ -19,6 +31,7 @@ static pthread_mutex_t lock;
 extern "C" void ocall_untrusted_alloc(void** umem, size_t size);
 
 #endif
+
 
 
 long long g_major_faults = 0;
