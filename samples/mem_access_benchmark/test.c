@@ -15,6 +15,7 @@
 extern void* __cosmix_oram_annotation(void* ptr);
 extern void* __cosmix_suvm_annotation(void* ptr);
 extern void* __cosmix_storage_annotation(void* ptr);
+extern void* __cosmix_pfcounter_annotation(void* ptr);
 
 int main(int argc, char** argv) 
 {
@@ -48,6 +49,8 @@ int main(int argc, char** argv)
 	unsigned char* x = (unsigned char*)__cosmix_oram_annotation(malloc(size_aligned));
 #elif SUVM_TEST
 	unsigned char* x = (unsigned char*)__cosmix_suvm_annotation(malloc(size_aligned));
+#elif PFCOUNTER_TEST
+    unsigned char* x = (unsigned char*)__cosmix_pfcounter_annotation(malloc(size_aligned));
 #elif STORAGE_TEST
 	int fd = open("test_storage.bin", O_RDWR | O_CREAT | O_TRUNC, (mode_t) 0600);
 	if (fd < 0)
