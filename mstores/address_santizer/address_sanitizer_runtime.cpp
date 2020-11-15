@@ -13,6 +13,7 @@
 #include <sys/resource.h>
 #include <unistd.h>
 #include <string.h>
+#include <iostream>
 
 /* array of bytes, each byte represent an 8 byte sequence in the address space
  * for each byte in the shadow mem - 0 means that all 8 bytes of the corresponding application
@@ -20,24 +21,32 @@ memory region are unaddressable; k (1 ≤ k ≤ 8) means that
 the first k bytes are addressible; any negative value indicates that the entire 8-byte word is unaddressable.
 Slight modification from the address sanitizer paper - instead of 0 for 8-addressable I used 8 and 0 means unallocated
  */
-char* g_shadow_mem;
-unsigned long long g_shadow_mem_size = 0;
+typedef char byte;
+byte* g_shadow_mem;
+unsigned long g_shadow_mem_size = 0;
 
-long long round_up_to_eight_aligned(long long num){
+unsigned long round_up_to_eight_aligned(unsigned long);
+byte* get_shadow_byte(void* addr);
+void assert_access(void* ptr, size_t s);
+void mark_as_redzone(void* red_zone_ptr);
+void mark_as_allocated(void* ptr, size_t size);
+void mark_as_freed(void* ptr, size_t size);
+
+unsigned long round_up_to_eight_aligned(unsigned long num){
     if(num%8 == 0){
         return num;
     }
     return num + (8-(num%8));
 }
 
-char* get_shadow_byte(void* addr){
-    return (char*) ((((unsigned long long) addr)>>3) + (unsigned long long)g_shadow_mem); //(Addr>>3) + Offset
+byte* get_shadow_byte(void* addr){
+    return (byte*) ((((unsigned long) addr)>>3) + (unsigned long)g_shadow_mem); //(Addr>>3) + Offset
 }
 
 bool is_allowed(void* ptr, size_t size){
     size_t remaining_bytes = size;
-    char* curr_byte = (char*)ptr;
-    char* curr_shadow_byte;
+    byte* curr_byte = (byte*)ptr;
+    byte* curr_shadow_byte;
 
     // if pointer is not 8-aligned, special handling of the first byte
     if((u_int64_t)curr_byte % 8){
@@ -65,31 +74,38 @@ bool is_allowed(void* ptr, size_t size){
     return true;
 }
 
+void assert_access(void* ptr, size_t s){
+    if(!is_allowed(ptr, s)){
+        std::cerr << "Access out of bounds" << std::endl;
+        exit(1);
+    }
+}
+
 void mark_as_redzone(void* red_zone_ptr){
     for(int eight_byte_chunk = 0; eight_byte_chunk < REDZONE_BYTES/8; eight_byte_chunk++){
-        char* shadow_byte = get_shadow_byte(((char*)red_zone_ptr)+8*eight_byte_chunk);
+        byte* shadow_byte = get_shadow_byte(((byte*)red_zone_ptr)+8*eight_byte_chunk);
         *shadow_byte = -1;
     }
 }
 
 void mark_as_allocated(void* ptr, size_t size){
     for(int eight_byte_chunk = 0; eight_byte_chunk < size/8; eight_byte_chunk++){
-        char* shadow_byte = get_shadow_byte((((char*)ptr)+8*eight_byte_chunk));
+        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+8*eight_byte_chunk));
         *shadow_byte = 8;
     }
     if(size%8 > 0){ //size isn't divisible by eight, need to mark the shadow mem for the last k (1 ≤ k ≤ 7) bytes
-        char* shadow_byte = get_shadow_byte((((char*)ptr)+(size-(size%8))));
+        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+(size-(size%8))));
         *shadow_byte = size%8;
     }
 }
 
 void mark_as_freed(void* ptr, size_t size){
     for(int eight_byte_chunk = 0; eight_byte_chunk < size/8; eight_byte_chunk++){
-        char* shadow_byte = get_shadow_byte((((char*)ptr)+8*eight_byte_chunk));
+        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+8*eight_byte_chunk));
         *shadow_byte = 0;
     }
     if(size%8 > 0){ //size isn't divisible by eight, need to mark the shadow mem for the last k (1 ≤ k ≤ 7) bytes
-        char* shadow_byte = get_shadow_byte((((char*)ptr)+(size-(size%8))));
+        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+(size-(size%8))));
         *shadow_byte = 0;
     }
 }
@@ -120,8 +136,8 @@ int address_sanitizer_mstore_init(void *priv_data) {
     if(priv_data != nullptr){
         offset = priv_data;
     }
-    g_shadow_mem = (char*) mmap(offset, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
-    if(g_shadow_mem != (char*) offset){
+    g_shadow_mem = (byte*) mmap(offset, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
+    if(g_shadow_mem != (byte*) offset){
         return -1;
     }
     return 0;
@@ -136,42 +152,42 @@ int address_sanitizer_mstore_cleanup(){
     return -1;
 }
 
-void address_sanitizer_mpf_handler_d(void *ptr, void *dst, size_t s);
+void address_sanitizer_mpf_handler_d(void *ptr, void *dst, size_t s){
+    address_sanitizer_write_back(ptr, dst, s);
+}
 
 void address_sanitizer_write_back(void *ptr, void *src, size_t s){
-    if(is_allowed(ptr, s) && is_allowed(src, s)){
-        memcpy(ptr, src, s);
-        return;
-    }
-    exit(1); //one of the pointer accesses is illegal
+    assert_access(ptr, s);
+    assert_access(src, s);
+    memcpy(ptr, src, s);
 }
 
 void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
-    char* ptr = (char*) malloc(round_up_to_eight_aligned(size) + 2*REDZONE_BYTES);
+    byte* ptr = (byte*) malloc(round_up_to_eight_aligned(size) + 2*REDZONE_BYTES);
     if(ptr == nullptr){
         return nullptr;
     }
-    char* start_redzone = ptr;
+    byte* start_redzone = ptr;
     mark_as_redzone(start_redzone);
-    char* actual_ptr = ptr + REDZONE_BYTES;
+    byte* actual_ptr = ptr + REDZONE_BYTES;
     mark_as_allocated(ptr, size);
-    char* end_redzone = actual_ptr + round_up_to_eight_aligned(size);
+    byte* end_redzone = actual_ptr + round_up_to_eight_aligned(size);
     mark_as_redzone(end_redzone);
     return actual_ptr;
 }
 
 void address_sanitizer_mstore_free(void *ptr){
-    char* start_redzone = ((char*)ptr) - REDZONE_BYTES;
+    byte* start_redzone = ((byte*)ptr) - REDZONE_BYTES;
     mark_as_freed(start_redzone, 2*REDZONE_BYTES + round_up_to_eight_aligned(address_sanitizer_mstore_alloc_size(ptr)));
     free(start_redzone);
 }
 
 size_t address_sanitizer_mstore_alloc_size(void *ptr){
-    char* curr_shadow_byte_ptr = get_shadow_byte(ptr);
+    byte* curr_shadow_byte_ptr = get_shadow_byte(ptr);
     size_t alloc_size = 0;
     while(*(curr_shadow_byte_ptr) > 0){
         alloc_size += *(curr_shadow_byte_ptr);
-        curr_shadow_byte_ptr = get_shadow_byte((char*)ptr + alloc_size);
+        curr_shadow_byte_ptr = get_shadow_byte((byte*)ptr + alloc_size);
     }
     return alloc_size;
 }
