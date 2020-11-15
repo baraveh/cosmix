@@ -5,14 +5,13 @@
 /* Shadow memory start address as defined in the address sanitizer paper */
 #define OFFSET_32_BIT (0x20000000)
 #define OFFSET_64_BIT (0x0000100000000000)
-#define REDZONE_BYTES (8) //must be 8 divisible
+#define REDZONE_BYTES (8) //must be 8 aligned
 
 
 #include "address_sanitizer_runtime.h"
 #include <sys/mman.h>
 #include <sys/resource.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <string.h>
 
 /* array of bytes, each byte represent an 8 byte sequence in the address space
@@ -24,7 +23,7 @@ Slight modification from the address sanitizer paper - instead of 0 for 8-addres
 char* g_shadow_mem;
 unsigned long long g_shadow_mem_size = 0;
 
-long long round_up_to_eight_divisible(long long num){
+long long round_up_to_eight_aligned(long long num){
     if(num%8 == 0){
         return num;
     }
@@ -40,23 +39,28 @@ bool is_allowed(void* ptr, size_t size){
     char* curr_byte = (char*)ptr;
     char* curr_shadow_byte;
 
+    // if pointer is not 8-aligned, special handling of the first byte
     if((u_int64_t)curr_byte % 8){
         curr_shadow_byte = get_shadow_byte(curr_byte);
         if (*curr_shadow_byte != 8){
             return false;
         }
         remaining_bytes -= (8- ((u_int64_t)curr_byte % 8));
-        curr_byte = (char*) round_up_to_eight_divisible((u_int64_t) curr_byte);
+        curr_byte = (char*) round_up_to_eight_aligned((u_int64_t) curr_byte);
     }
-    // to make sure curr_byte starts as eight aligned
 
     while(remaining_bytes > 0){
         curr_shadow_byte = get_shadow_byte(curr_byte);
-        if((remaining_bytes < 8 && (*(curr_shadow_byte)) < remaining_bytes) || *(curr_shadow_byte) != 8){
+        if(remaining_bytes < 8){
+            //the last byte, and size is not 8 aligned
+            return (*curr_shadow_byte >= remaining_bytes);
+        }
+        // size is at least 8 bytes, so curr shadow byte needs to allow for 8 bytes
+        if (*curr_shadow_byte != 8){
             return false;
         }
+        remaining_bytes -= 8;
         curr_byte += 8;
-        remaining_bytes -=8;
     }
     return true;
 }
@@ -143,7 +147,7 @@ void address_sanitizer_write_back(void *ptr, void *src, size_t s){
 }
 
 void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
-    char* ptr = (char*) malloc(round_up_to_eight_divisible(size) + 2*REDZONE_BYTES);
+    char* ptr = (char*) malloc(round_up_to_eight_aligned(size) + 2*REDZONE_BYTES);
     if(ptr == nullptr){
         return nullptr;
     }
@@ -151,14 +155,14 @@ void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
     mark_as_redzone(start_redzone);
     char* actual_ptr = ptr + REDZONE_BYTES;
     mark_as_allocated(ptr, size);
-    char* end_redzone = actual_ptr + round_up_to_eight_divisible(size);
+    char* end_redzone = actual_ptr + round_up_to_eight_aligned(size);
     mark_as_redzone(end_redzone);
     return actual_ptr;
 }
 
 void address_sanitizer_mstore_free(void *ptr){
     char* start_redzone = ((char*)ptr) - REDZONE_BYTES;
-    mark_as_freed(start_redzone, 2*REDZONE_BYTES + round_up_to_eight_divisible(address_sanitizer_mstore_alloc_size(ptr)));
+    mark_as_freed(start_redzone, 2*REDZONE_BYTES + round_up_to_eight_aligned(address_sanitizer_mstore_alloc_size(ptr)));
     free(start_redzone);
 }
 
