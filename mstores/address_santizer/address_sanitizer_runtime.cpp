@@ -11,6 +11,9 @@
 #include "address_sanitizer_runtime.h"
 #include <sys/mman.h>
 #include <sys/resource.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
 
 /* array of bytes, each byte represent an 8 byte sequence in the address space
  * for each byte in the shadow mem - 0 means that all 8 bytes of the corresponding application
@@ -21,15 +24,41 @@ Slight modification from the address sanitizer paper - instead of 0 for 8-addres
 char* g_shadow_mem;
 unsigned long long g_shadow_mem_size = 0;
 
-char* get_shadow_byte(void* addr){
-    return (char*) ((((unsigned long long) addr)>>3) + (unsigned long long)g_shadow_mem); //(Addr>>3) + Offset
-}
-
-int round_up_to_eight_divisible(int num){
+long long round_up_to_eight_divisible(long long num){
     if(num%8 == 0){
         return num;
     }
     return num + (8-(num%8));
+}
+
+char* get_shadow_byte(void* addr){
+    return (char*) ((((unsigned long long) addr)>>3) + (unsigned long long)g_shadow_mem); //(Addr>>3) + Offset
+}
+
+bool is_allowed(void* ptr, size_t size){
+    size_t remaining_bytes = size;
+    char* curr_byte = (char*)ptr;
+    char* curr_shadow_byte;
+
+    if((u_int64_t)curr_byte % 8){
+        curr_shadow_byte = get_shadow_byte(curr_byte);
+        if (*curr_shadow_byte != 8){
+            return false;
+        }
+        remaining_bytes -= (8- ((u_int64_t)curr_byte % 8));
+        curr_byte = (char*) round_up_to_eight_divisible((u_int64_t) curr_byte);
+    }
+    // to make sure curr_byte starts as eight aligned
+
+    while(remaining_bytes > 0){
+        curr_shadow_byte = get_shadow_byte(curr_byte);
+        if((remaining_bytes < 8 && (*(curr_shadow_byte)) < remaining_bytes) || *(curr_shadow_byte) != 8){
+            return false;
+        }
+        curr_byte += 8;
+        remaining_bytes -=8;
+    }
+    return true;
 }
 
 void mark_as_redzone(void* red_zone_ptr){
@@ -47,6 +76,17 @@ void mark_as_allocated(void* ptr, size_t size){
     if(size%8 > 0){ //size isn't divisible by eight, need to mark the shadow mem for the last k (1 ≤ k ≤ 7) bytes
         char* shadow_byte = get_shadow_byte((((char*)ptr)+(size-(size%8))));
         *shadow_byte = size%8;
+    }
+}
+
+void mark_as_freed(void* ptr, size_t size){
+    for(int eight_byte_chunk = 0; eight_byte_chunk < size/8; eight_byte_chunk++){
+        char* shadow_byte = get_shadow_byte((((char*)ptr)+8*eight_byte_chunk));
+        *shadow_byte = 0;
+    }
+    if(size%8 > 0){ //size isn't divisible by eight, need to mark the shadow mem for the last k (1 ≤ k ≤ 7) bytes
+        char* shadow_byte = get_shadow_byte((((char*)ptr)+(size-(size%8))));
+        *shadow_byte = 0;
     }
 }
 
@@ -94,7 +134,13 @@ int address_sanitizer_mstore_cleanup(){
 
 void address_sanitizer_mpf_handler_d(void *ptr, void *dst, size_t s);
 
-void address_sanitizer_write_back(void *ptr, void *dst, size_t s);
+void address_sanitizer_write_back(void *ptr, void *src, size_t s){
+    if(is_allowed(ptr, s) && is_allowed(src, s)){
+        memcpy(ptr, src, s);
+        return;
+    }
+    exit(1); //one of the pointer accesses is illegal
+}
 
 void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
     char* ptr = (char*) malloc(round_up_to_eight_divisible(size) + 2*REDZONE_BYTES);
@@ -111,9 +157,21 @@ void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
 }
 
 void address_sanitizer_mstore_free(void *ptr){
-
+    char* start_redzone = ((char*)ptr) - REDZONE_BYTES;
+    mark_as_freed(start_redzone, 2*REDZONE_BYTES + round_up_to_eight_divisible(address_sanitizer_mstore_alloc_size(ptr)));
+    free(start_redzone);
 }
 
-size_t address_sanitizer_mstore_alloc_size(void *ptr);
+size_t address_sanitizer_mstore_alloc_size(void *ptr){
+    char* curr_shadow_byte_ptr = get_shadow_byte(ptr);
+    size_t alloc_size = 0;
+    while(*(curr_shadow_byte_ptr) > 0){
+        alloc_size += *(curr_shadow_byte_ptr);
+        curr_shadow_byte_ptr = get_shadow_byte((char*)ptr + alloc_size);
+    }
+    return alloc_size;
+}
 
-size_t address_sanitizer_mstore_get_mpage_size();
+size_t address_sanitizer_mstore_get_mpage_size(){
+    return sysconf(_SC_PAGESIZE);
+}
