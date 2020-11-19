@@ -156,10 +156,10 @@ void address_sanitizer_mpf_handler_d(void *ptr, void *dst, size_t s){
     address_sanitizer_write_back(ptr, dst, s);
 }
 
-void address_sanitizer_write_back(void *ptr, void *src, size_t s){
+void address_sanitizer_write_back(void *ptr, void *dst, size_t s){
     assert_access(ptr, s);
-    assert_access(src, s);
-    memcpy(ptr, src, s);
+    assert_access(dst, s);
+    memcpy(dst, ptr, s);
 }
 
 void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
