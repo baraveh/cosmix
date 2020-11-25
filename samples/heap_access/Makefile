@@ -16,7 +16,7 @@ address_sanitizer: test.c cosmix
 	$(LLVM_BIN)/opt -load ../../pass/cosmix.so < test_loop_simplify.bc -cosmix -replace_all_allocators=false -code_analysis_integers=false -config_file=$(current_dir)/address_sanitizer.json > test_inst.bc
 	$(LLVM_BIN)/opt -O3 < test_inst.bc > test_opt.bc
 	$(LLVM_BIN)/llc -relocation-model=pic -filetype=obj test_opt.bc -o test.o
-	g++ test.o -o oram
+	g++ test.o -o address_sanitizer
 
 
 clean:
