@@ -89,7 +89,7 @@ endif
 .PHONY: all run
 
 ifeq ($(Build_Mode), HW_RELEASE)
-all: address_sanitizer_runtime.bc
+all: address_sanitizer.bc
 	@echo "Build enclave samples.so  [$(Build_Mode)|$(SGX_ARCH)] success!"
 	@echo
 	@echo "*********************************************************************************************************************************************************"
@@ -99,7 +99,7 @@ all: address_sanitizer_runtime.bc
 
 
 else
-all: address_sanitizer_runtime.bc
+all: address_sanitizer.bc
 endif
 
 run: all
@@ -110,7 +110,7 @@ endif
 
 ######## samples Objects ########
 
-address_sanitizer_runtime.bc : address_sanitizer_runtime.cpp
+address_sanitizer.bc : address_sanitizer_runtime.cpp
 	$(CLANG_PATH)/clang++ $(Samples_Cpp_Flags) -fpie -fPIC $(Samples_Include_Paths) -emit-llvm -c $< -o $@
 
 clean:
