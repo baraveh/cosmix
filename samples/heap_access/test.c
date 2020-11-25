@@ -79,7 +79,7 @@ int main(){
         else{
             int status;
             waitpid(pid, &status, 0);
-            if (WIFEXITED(stat) && WEXITSTATUS(stat) == 3){
+            if (WIFEXITED(status) && WEXITSTATUS(status) == 3){
                 printf("%s Test Passed", tests_arr[i].name);
             }
             else{
