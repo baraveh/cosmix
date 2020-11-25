@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <assert.h>
+#include <sys/wait.h>
 
 extern void* __cosmix_address_sanitizer_annotation(void* ptr);
 void legal_heap_accesses();
