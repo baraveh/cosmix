@@ -118,9 +118,9 @@ int address_sanitizer_mstore_init(void *priv_data) {
     void* offset;
     struct rlimit mem_limit;
     if(getrlimit(RLIMIT_AS, &mem_limit) != 0){
-        return -2;
+        return -errno;
     }
-    g_shadow_mem_size = (mem_limit.rlim_max)/8;
+    g_shadow_mem_size = (mem_limit.rlim_cur)/8;
     size_t os_bits = sizeof(void *) * 8;
     switch (os_bits) {
         case 32:
@@ -138,7 +138,7 @@ int address_sanitizer_mstore_init(void *priv_data) {
     }
     g_shadow_mem = (byte*) mmap(offset, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
     if(g_shadow_mem == MAP_FAILED){
-        return errno;
+        return -errno;
     }
     return 0;
 }
