@@ -9,11 +9,6 @@ cosmix:
 	make -C ../../runtime -f Makefile SDK_BUILD="-DSCONE_BUILD" NO_COUNTERS="-DNO_COUNTERS" RELEASE_BUILD="-DRELEASE_BUILD" SUVM_MIN_PTR_SIZE="-DSUVM_MIN_PTR_SIZE=1" SUVM_MAX_PTR_SIZE="-DSUVM_MAX_PTR_SIZE=1073741824" ORAM_BITS="-DORAM_BITS=28";
 	make -C ../../mstores -f Makefile SDK_BUILD="-DSCONE_BUILD" NO_COUNTERS="-DNO_COUNTERS" RELEASE_BUILD="-DRELEASE_BUILD" SUVM_MIN_PTR_SIZE="-DSUVM_MIN_PTR_SIZE=1" SUVM_MAX_PTR_SIZE="-DSUVM_MAX_PTR_SIZE=1073741824" ORAM_BITS="-DORAM_BITS=28";
 
-native: test.c
-	$(LLVM_BIN)/clang -O3 -emit-llvm -c test.c -o test.bc
-	$(LLVM_BIN)/llc -relocation-model=pic -filetype=obj test.bc -o test.o
-	gcc test.o -o native
-
 address_sanitizer: test.c cosmix
 	$(LLVM_BIN)/clang -O3 -emit-llvm -c test.c "-DADDRESS_SANITIZER_TEST" -o test.bc
 	$(LLVM_BIN)/llvm-link test.bc ../../runtime/cosmix_runtime.bc ../../mstores/address_sanitizer/address_sanitizer.bc ../../mstores/common/common.bc -o test_wrappers.bc
