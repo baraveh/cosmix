@@ -120,7 +120,7 @@ int address_sanitizer_mstore_init(void *priv_data) {
     if(getrlimit(RLIMIT_AS, &mem_limit) != 0){
         return -errno;
     }
-    g_shadow_mem_size = (mem_limit.rlim_cur)/8;
+    g_shadow_mem_size = (mem_limit.rlim_cur)>>3;
     size_t os_bits = sizeof(void *) * 8;
     switch (os_bits) {
         case 32:
