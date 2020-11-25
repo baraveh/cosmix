@@ -22,4 +22,4 @@ address_sanitizer: test.c cosmix
 clean:
 	make -C ../../pass -f Makefile clean &> /dev/null;
 	make -C ../../runtime -f Makefile clean &> /dev/null;
-	rm -rf *.bc *.o *.log *.bin oram oram_suvm suvm storage native
+	rm -rf *.bc *.o *.log *.bin address_sanitizer
