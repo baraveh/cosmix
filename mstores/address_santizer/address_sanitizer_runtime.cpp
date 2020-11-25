@@ -77,7 +77,7 @@ bool is_allowed(void* ptr, size_t size){
 void assert_access(void* ptr, size_t s){
     if(!is_allowed(ptr, s)){
         std::cerr << "Access out of bounds" << std::endl;
-        exit(1);
+        exit(3);
     }
 }
 

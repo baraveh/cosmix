@@ -45,7 +45,7 @@ void legal_heap_accesses(){
     z[0] = 1;
     free(z);
     free(y);
-    exit(1);
+    exit(3);
 }
 
 void left_heap_overflow(){
@@ -69,7 +69,7 @@ void access_after_free(){
     exit(0);
 }
 
-/** test pass <==> exit code = 1 **/
+/** test pass <==> exit code = 3 **/
 int main(){
     for(int i = 0; i < sizeof(tests_arr) / sizeof(struct test); i++){
         pid_t pid = fork();
@@ -79,7 +79,7 @@ int main(){
         else{
             int status;
             waitpid(pid, &status, 0);
-            if (WIFEXITED(stat) && WEXITSTATUS(stat) == 1){
+            if (WIFEXITED(stat) && WEXITSTATUS(stat) == 3){
                 printf("%s Test Passed", tests_arr[i].name);
             }
             else{
