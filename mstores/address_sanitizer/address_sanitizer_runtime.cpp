@@ -138,7 +138,7 @@ int address_sanitizer_mstore_init(void *priv_data) {
     }
     g_shadow_mem = (byte*) mmap(offset, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
     if(g_shadow_mem == MAP_FAILED){
-        return -3;
+        return errno;
     }
     return 0;
 }
