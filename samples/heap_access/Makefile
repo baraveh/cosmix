@@ -2,7 +2,7 @@ include ../../Defines.mk
 
 current_dir = $(shell pwd)
 
-all : address_sanitizer native
+all : address_sanitizer
 
 cosmix:
 	make -C ../../pass -f Makefile SDK_BUILD="-DSCONE_BUILD" NO_COUNTERS="-DNO_COUNTERS" RELEASE_BUILD="-DRELEASE_BUILD" SUVM_MIN_PTR_SIZE="-DSUVM_MIN_PTR_SIZE=1" SUVM_MAX_PTR_SIZE="-DSUVM_MAX_PTR_SIZE=1073741824" ORAM_BITS="-DORAM_BITS=28";
