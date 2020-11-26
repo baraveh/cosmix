@@ -121,8 +121,8 @@ int address_sanitizer_mstore_init(void *priv_data) {
         return -errno;
     }
     g_shadow_mem_size = (mem_limit.rlim_max)>>3;
-    printf("memory size is %lu bytes, g_shadow_mem_size is %lu bytes\n", mem_limit.rlim_max, g_shadow_mem_size);
-    /* size_t os_bits = sizeof(void *) * 8;
+    printf("memory size is %lu bytes, g_shadow_mem_size is %lu bytes\n", mem_limit.rlim_max, g_shadow_mem_size); //print for debugging, remove when done
+    size_t os_bits = sizeof(void *) * 8;
     switch (os_bits) {
         case 32:
             offset = (void*) OFFSET_32_BIT;
@@ -136,8 +136,8 @@ int address_sanitizer_mstore_init(void *priv_data) {
     }
     if(priv_data != nullptr){
         offset = priv_data;
-    } */
-    g_shadow_mem = (byte*) mmap(0, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+    }
+    g_shadow_mem = (byte*) mmap(offset, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
     if(g_shadow_mem == MAP_FAILED){
         return -errno;
     }
