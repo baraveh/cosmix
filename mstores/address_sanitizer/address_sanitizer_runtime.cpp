@@ -2,15 +2,11 @@
 // Created by baraveh on 11/5/20.
 //
 
-/* Shadow memory start address as defined in the address sanitizer paper */
-#define OFFSET_32_BIT (0x20000000)
-#define OFFSET_64_BIT (0x0000100000000000)
-#define SCALE (32) //must be 8 aligned
+#define SCALE (8) //must be 8 aligned
 #define REDZONE_BYTES (SCALE) //must be scale aligned
 
 
 #include "address_sanitizer_runtime.h"
-#include <sys/mman.h>
 #include <sys/resource.h>
 #include <unistd.h>
 #include <string.h>
@@ -42,7 +38,7 @@ unsigned long round_up_to_scale_aligned(unsigned long num){
 }
 
 byte* get_shadow_byte(void* addr){
-    return (byte*) ((((unsigned long) addr)>>3) + (unsigned long)g_shadow_mem); //(Addr>>3) + Offset
+    return (byte*) ((((unsigned long) addr)/SCALE) + (unsigned long)g_shadow_mem); //(Addr>>3) + Offset
 }
 
 bool is_allowed(void* ptr, size_t size){
@@ -106,7 +102,7 @@ void mark_as_freed(void* ptr, size_t size){
         byte* shadow_byte = get_shadow_byte((((byte*)ptr)+SCALE*scale_byte_chunk));
         *shadow_byte = 0;
     }
-    if(size%SCALE > 0){ //size isn't divisible by eight, need to mark the shadow mem for the last k (1 ≤ k ≤ 7) bytes
+    if(size%SCALE > 0){ //size isn't divisible by eight, need to mark the shadow mem for the last k (1 ≤ k ≤ SCALE - 1) bytes
         byte* shadow_byte = get_shadow_byte((((byte*)ptr)+(size-(size%SCALE))));
         *shadow_byte = 0;
     }
@@ -117,43 +113,27 @@ int address_sanitizer_mstore_init(void *priv_data) {
     if (g_shadow_mem_size != 0) {
         return -1;
     }
-    void* offset = nullptr;
     struct rlimit mem_limit;
     if(getrlimit(RLIMIT_AS, &mem_limit) != 0){
         return -errno;
     }
-    g_shadow_mem_size = (mem_limit.rlim_cur)/SCALE;
-    printf("memory size is %lu bytes, g_shadow_mem_size is %lu bytes\n", mem_limit.rlim_max, g_shadow_mem_size); //print for debugging, remove when done
-    size_t os_bits = sizeof(void *) * 8;
-    /* switch (os_bits) {
-        case 32:
-            offset = (void*) OFFSET_32_BIT;
-            break;
-        case 64:
-            offset = (void*) OFFSET_64_BIT;
-            break;
-        default:
-            offset = (void*) 0;
-            break;
-    }
-    if(priv_data != nullptr){
-        offset = priv_data;
-    } */
-    g_shadow_mem = (byte*) mmap(offset, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if(g_shadow_mem == MAP_FAILED){
-        printf("Mmap failed with %d. offset = %lu, allocation size = %lu\n", errno, (unsigned long)offset, g_shadow_mem_size); //print for debugging, remove when done
+    mem_limit.rlim_cur = mem_limit.rlim_max;
+    if(setrlimit(RLIMIT_AS, &mem_limit) != 0){
         return -errno;
+    }
+    g_shadow_mem_size = (mem_limit.rlim_cur)/SCALE;
+    printf("memory size is %lu bytes, g_shadow_mem_size is %lu bytes\n", mem_limit.rlim_cur, g_shadow_mem_size); //print for debugging, remove when done
+    g_shadow_mem = (byte*) malloc(g_shadow_mem_size);
+    if(g_shadow_mem == nullptr){
+        return -1;
     }
     return 0;
 }
 
 int address_sanitizer_mstore_cleanup(){
-    int res = munmap(g_shadow_mem, g_shadow_mem_size);
-    if (res == 0){
-        g_shadow_mem_size = 0;
-        return 0;
-    }
-    return -1;
+    free(g_shadow_mem);
+    g_shadow_mem_size = 0;
+    return 0;
 }
 
 void address_sanitizer_mpf_handler_d(void *ptr, void *dst, size_t s){
