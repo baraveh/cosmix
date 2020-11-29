@@ -5,7 +5,7 @@
 /* Shadow memory start address as defined in the address sanitizer paper */
 #define OFFSET_32_BIT (0x20000000)
 #define OFFSET_64_BIT (0x0000100000000000)
-#define SCALE (32) //must be 8 aligned
+#define SCALE (8) //must be 8 aligned
 #define REDZONE_BYTES (SCALE) //must be scale aligned
 
 
@@ -143,7 +143,7 @@ int address_sanitizer_mstore_init(void *priv_data) {
     if(priv_data != nullptr){
         offset = priv_data;
     }
-    g_shadow_mem = (byte*) mmap(offset, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+    g_shadow_mem = (byte*) mmap(offset, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_NORESERVE, -1, 0);
     if(g_shadow_mem == MAP_FAILED){
         printf("Mmap failed with %d. offset = %lu, allocation size = %lu\n", errno, (unsigned long)offset, g_shadow_mem_size); //print for debugging, remove when done
         return -errno;
