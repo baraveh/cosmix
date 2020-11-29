@@ -127,7 +127,7 @@ int address_sanitizer_mstore_init(void *priv_data) {
         return -errno;
     }
     g_shadow_mem_size = (mem_limit.rlim_cur)/SCALE;
-    printf("memory size is %lu bytes, g_shadow_mem_size is %lu bytes\n", mem_limit.rlim_cur, g_shadow_mem_size); //print for debugging, remove when done
+    printf("memory size is %lu bytes, array size is %lu bytes\n", mem_limit.rlim_cur, g_shadow_mem_size); //print for debugging, remove when done
     size_t os_bits = sizeof(void *) * 8;
     switch (os_bits) {
         case 32:
