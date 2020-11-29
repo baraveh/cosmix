@@ -6,6 +6,7 @@
 #define OFFSET_32_BIT (0x20000000)
 #define OFFSET_64_BIT (0x0000100000000000)
 #define REDZONE_BYTES (8) //must be 8 aligned
+#define SCALE (32) //must be 8 aligned
 
 
 #include "address_sanitizer_runtime.h"
@@ -14,6 +15,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <iostream>
+#include <errno.h>
 
 /* array of bytes, each byte represent an 8 byte sequence in the address space
  * for each byte in the shadow mem - 0 means that all 8 bytes of the corresponding application
@@ -25,18 +27,18 @@ typedef char byte;
 byte* g_shadow_mem;
 unsigned long g_shadow_mem_size = 0;
 
-unsigned long round_up_to_eight_aligned(unsigned long);
+unsigned long round_up_to_scale_aligned(unsigned long);
 byte* get_shadow_byte(void* addr);
 void assert_access(void* ptr, size_t s);
 void mark_as_redzone(void* red_zone_ptr);
 void mark_as_allocated(void* ptr, size_t size);
 void mark_as_freed(void* ptr, size_t size);
 
-unsigned long round_up_to_eight_aligned(unsigned long num){
-    if(num%8 == 0){
+unsigned long round_up_to_scale_aligned(unsigned long num){
+    if(num%SCALE == 0){
         return num;
     }
-    return num + (8-(num%8));
+    return num + (SCALE-(num%SCALE));
 }
 
 byte* get_shadow_byte(void* addr){
@@ -48,28 +50,28 @@ bool is_allowed(void* ptr, size_t size){
     byte* curr_byte = (byte*)ptr;
     byte* curr_shadow_byte;
 
-    // if pointer is not 8-aligned, special handling of the first byte
-    if((u_int64_t)curr_byte % 8){
+    // if pointer is not scale-aligned, special handling of the first byte
+    if((u_int64_t)curr_byte % SCALE){
         curr_shadow_byte = get_shadow_byte(curr_byte);
-        if (*curr_shadow_byte != 8){
+        if (*curr_shadow_byte != SCALE){
             return false;
         }
-        remaining_bytes -= (8- ((u_int64_t)curr_byte % 8));
-        curr_byte = (char*) round_up_to_eight_aligned((u_int64_t) curr_byte);
+        remaining_bytes -= (SCALE- ((u_int64_t)curr_byte % SCALE));
+        curr_byte = (char*) round_up_to_scale_aligned((u_int64_t) curr_byte);
     }
 
     while(remaining_bytes > 0){
         curr_shadow_byte = get_shadow_byte(curr_byte);
-        if(remaining_bytes < 8){
-            //the last byte, and size is not 8 aligned
+        if(remaining_bytes < SCALE){
+            //the last byte, and size is not scale aligned
             return (*curr_shadow_byte >= remaining_bytes);
         }
-        // size is at least 8 bytes, so curr shadow byte needs to allow for 8 bytes
-        if (*curr_shadow_byte != 8){
+        // size is at least scale bytes, so curr shadow byte needs to allow for scale bytes
+        if (*curr_shadow_byte != SCALE){
             return false;
         }
-        remaining_bytes -= 8;
-        curr_byte += 8;
+        remaining_bytes -= SCALE;
+        curr_byte += SCALE;
     }
     return true;
 }
@@ -82,30 +84,30 @@ void assert_access(void* ptr, size_t s){
 }
 
 void mark_as_redzone(void* red_zone_ptr){
-    for(int eight_byte_chunk = 0; eight_byte_chunk < REDZONE_BYTES/8; eight_byte_chunk++){
-        byte* shadow_byte = get_shadow_byte(((byte*)red_zone_ptr)+8*eight_byte_chunk);
+    for(int scale_byte_chunk = 0; scale_byte_chunk < REDZONE_BYTES/SCALE; scale_byte_chunk++){
+        byte* shadow_byte = get_shadow_byte(((byte*)red_zone_ptr)+SCALE*scale_byte_chunk);
         *shadow_byte = -1;
     }
 }
 
 void mark_as_allocated(void* ptr, size_t size){
-    for(int eight_byte_chunk = 0; eight_byte_chunk < size/8; eight_byte_chunk++){
-        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+8*eight_byte_chunk));
-        *shadow_byte = 8;
+    for(int scale_byte_chunk = 0; scale_byte_chunk < REDZONE_BYTES/SCALE; scale_byte_chunk++){
+        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+SCALE*scale_byte_chunk));
+        *shadow_byte = SCALE;
     }
-    if(size%8 > 0){ //size isn't divisible by eight, need to mark the shadow mem for the last k (1 ≤ k ≤ 7) bytes
-        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+(size-(size%8))));
-        *shadow_byte = size%8;
+    if(size%SCALE > 0){ //size isn't divisible by scale, need to mark the shadow mem for the last k (1 ≤ k ≤ SCALE - 1) bytes
+        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+(size-(size%SCALE))));
+        *shadow_byte = size%SCALE;
     }
 }
 
 void mark_as_freed(void* ptr, size_t size){
-    for(int eight_byte_chunk = 0; eight_byte_chunk < size/8; eight_byte_chunk++){
-        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+8*eight_byte_chunk));
+    for(int scale_byte_chunk = 0; scale_byte_chunk < REDZONE_BYTES/SCALE; scale_byte_chunk++){
+        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+SCALE*scale_byte_chunk));
         *shadow_byte = 0;
     }
-    if(size%8 > 0){ //size isn't divisible by eight, need to mark the shadow mem for the last k (1 ≤ k ≤ 7) bytes
-        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+(size-(size%8))));
+    if(size%SCALE > 0){ //size isn't divisible by eight, need to mark the shadow mem for the last k (1 ≤ k ≤ 7) bytes
+        byte* shadow_byte = get_shadow_byte((((byte*)ptr)+(size-(size%SCALE))));
         *shadow_byte = 0;
     }
 }
@@ -120,7 +122,7 @@ int address_sanitizer_mstore_init(void *priv_data) {
     if(getrlimit(RLIMIT_AS, &mem_limit) != 0){
         return -errno;
     }
-    g_shadow_mem_size = (mem_limit.rlim_max)>>3;
+    g_shadow_mem_size = (mem_limit.rlim_max)/SCALE;
     printf("memory size is %lu bytes, g_shadow_mem_size is %lu bytes\n", mem_limit.rlim_max, g_shadow_mem_size); //print for debugging, remove when done
     size_t os_bits = sizeof(void *) * 8;
     switch (os_bits) {
@@ -164,7 +166,7 @@ void address_sanitizer_write_back(void *ptr, void *dst, size_t s){
 }
 
 void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
-    byte* ptr = (byte*) malloc(round_up_to_eight_aligned(size) + 2*REDZONE_BYTES);
+    byte* ptr = (byte*) malloc(round_up_to_scale_aligned(size) + 2*REDZONE_BYTES);
     if(ptr == nullptr){
         return nullptr;
     }
@@ -172,14 +174,14 @@ void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
     mark_as_redzone(start_redzone);
     byte* actual_ptr = ptr + REDZONE_BYTES;
     mark_as_allocated(ptr, size);
-    byte* end_redzone = actual_ptr + round_up_to_eight_aligned(size);
+    byte* end_redzone = actual_ptr + round_up_to_scale_aligned(size);
     mark_as_redzone(end_redzone);
     return actual_ptr;
 }
 
 void address_sanitizer_mstore_free(void *ptr){
     byte* start_redzone = ((byte*)ptr) - REDZONE_BYTES;
-    mark_as_freed(start_redzone, 2*REDZONE_BYTES + round_up_to_eight_aligned(address_sanitizer_mstore_alloc_size(ptr)));
+    mark_as_freed(start_redzone, 2*REDZONE_BYTES + round_up_to_scale_aligned(address_sanitizer_mstore_alloc_size(ptr)));
     free(start_redzone);
 }
 

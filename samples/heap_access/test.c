@@ -66,7 +66,7 @@ void right_heap_overflow(){
 void access_after_free(){
     char* x = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*8));
     free(x);
-    x[1] = 'a';
+    x[1] = 'a'; //should exit here
     exit(0);
 }
 
