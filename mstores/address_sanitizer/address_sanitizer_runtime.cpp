@@ -6,7 +6,7 @@
 #define OFFSET_32_BIT (0x20000000)
 #define OFFSET_64_BIT (0x0000100000000000)
 #define SCALE (32) //must be 8 aligned
-#define REDZONE_BYTES (32) //must be scale aligned
+#define REDZONE_BYTES (SCALE) //must be scale aligned
 
 
 #include "address_sanitizer_runtime.h"
