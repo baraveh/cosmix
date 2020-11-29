@@ -2,7 +2,7 @@
 // Created by baraveh on 11/5/20.
 //
 
-#define SCALE (8) //must be 8 aligned
+#define SCALE (32) //must be 8 aligned
 #define REDZONE_BYTES (SCALE) //must be scale aligned
 
 
@@ -124,7 +124,7 @@ int address_sanitizer_mstore_init(void *priv_data) {
     g_shadow_mem_size = (mem_limit.rlim_cur)/SCALE;
     printf("memory size is %lu bytes, g_shadow_mem_size is %lu bytes\n", mem_limit.rlim_cur, g_shadow_mem_size); //print for debugging, remove when done
     g_shadow_mem = (byte*) malloc(g_shadow_mem_size);
-    if(g_shadow_mem == nullptr){
+    if(g_shadow_mem == 0){
         return -1;
     }
     return 0;
