@@ -5,8 +5,8 @@
 /* Shadow memory start address as defined in the address sanitizer paper */
 #define OFFSET_32_BIT (0x20000000)
 #define OFFSET_64_BIT (0x0000100000000000)
-#define REDZONE_BYTES (8) //must be 8 aligned
 #define SCALE (32) //must be 8 aligned
+#define REDZONE_BYTES (32) //must be scale aligned
 
 
 #include "address_sanitizer_runtime.h"
