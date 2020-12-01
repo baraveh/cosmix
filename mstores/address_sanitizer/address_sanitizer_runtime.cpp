@@ -2,11 +2,12 @@
 // Created by baraveh on 11/5/20.
 //
 
-/* Shadow memory start address as defined in the address sanitizer paper */
+/* Shadow memory start address as defined in the address sanitizer paper
 #define OFFSET_32_BIT (0x20000000)
-#define OFFSET_64_BIT (0x0000100000000000)
+#define OFFSET_64_BIT (0x0000100000000000) */
 #define SCALE (8) //must be 8 aligned
 #define REDZONE_BYTES (SCALE) //must be scale aligned
+#define MEMORY_SIZE (~(0))
 
 
 #include "address_sanitizer_runtime.h"
@@ -117,35 +118,19 @@ int address_sanitizer_mstore_init(void *priv_data) {
     if (g_shadow_mem_size != 0) {
         return -1;
     }
-    void* offset = nullptr;
     struct rlimit mem_limit;
     if(getrlimit(RLIMIT_AS, &mem_limit) != 0){
         return -errno;
     }
-    mem_limit.rlim_cur = mem_limit.rlim_max;
+    mem_limit.rlim_cur = MEMORY_SIZE;
     if(setrlimit(RLIMIT_AS, &mem_limit) != 0){
         return -errno;
     }
     g_shadow_mem_size = (mem_limit.rlim_cur)/SCALE;
-    printf("memory size is %lu bytes, array size is %lu bytes\n", mem_limit.rlim_cur, g_shadow_mem_size); //print for debugging, remove when done
-    size_t os_bits = sizeof(void *) * 8;
-    switch (os_bits) {
-        case 32:
-            offset = (void*) OFFSET_32_BIT;
-            break;
-        case 64:
-            offset = (void*) OFFSET_64_BIT;
-            break;
-        default:
-            offset = (void*) 0;
-            break;
-    }
-    if(priv_data != nullptr){
-        offset = priv_data;
-    }
-    g_shadow_mem = (byte*) mmap(offset, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_NORESERVE, -1, 0);
+    printf("memory size is %lu, shadow mem size is %lu", mem_limit.rlim_cur, g_shadow_mem_size);
+    g_shadow_mem = (byte*) mmap(nullptr, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     if(g_shadow_mem == MAP_FAILED){
-        printf("Mmap failed with %d. offset = %lu, allocation size = %lu\n", errno, (unsigned long)offset, g_shadow_mem_size); //print for debugging, remove when done
+        printf("mmap failed with %d - %s", errno, strerror(errno));
         return -errno;
     }
     return 0;
