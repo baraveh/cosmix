@@ -2,10 +2,9 @@
 // Created by baraveh on 11/5/20.
 //
 
-/* Shadow memory start address as defined in the address sanitizer paper
-#define OFFSET_32_BIT (0x20000000)
-#define OFFSET_64_BIT (0x0000100000000000) */
-#define SCALE (8) //must be 8 aligned
+
+#define SCALE_BITS (3)
+#define SCALE (1<<SCALE_BITS)
 #define REDZONE_BYTES (SCALE) //must be scale aligned
 #define MEMORY_SIZE (1<<30)
 
@@ -18,9 +17,9 @@
 #include <iostream>
 #include <errno.h>
 
-/* array of bytes, each byte represent an 8 byte sequence in the address space
+/* array of bytes, each byte represent an <scale> byte sequence in the address space
  * for each byte in the shadow mem - 0 means that all 8 bytes of the corresponding application
-memory region are unaddressable; k (1 ≤ k ≤ 8) means that
+memory region are unaddressable; k (1 ≤ k ≤ SCALE) means that
 the first k bytes are addressible; any negative value indicates that the entire 8-byte word is unaddressable.
 Slight modification from the address sanitizer paper - instead of 0 for 8-addressable I used 8 and 0 means unallocated
  */
@@ -43,7 +42,7 @@ unsigned long round_up_to_scale_aligned(unsigned long num){
 }
 
 byte* get_shadow_byte(void* addr){
-    return (byte*) ((((unsigned long) addr)>>3) + (unsigned long)g_shadow_mem); //(Addr>>3) + Offset
+    return (byte*) ((((unsigned long) addr)>>SCALE_BITS) + (unsigned long)g_shadow_mem); //(Addr>>3) + Offset
 }
 
 bool is_allowed(void* ptr, size_t size){
@@ -107,7 +106,7 @@ void mark_as_freed(void* ptr, size_t size){
         byte* shadow_byte = get_shadow_byte((((byte*)ptr)+SCALE*scale_byte_chunk));
         *shadow_byte = 0;
     }
-    if(size%SCALE > 0){ //size isn't divisible by eight, need to mark the shadow mem for the last k (1 ≤ k ≤ 7) bytes
+    if(size%SCALE > 0){ //size isn't divisible by eight, need to mark the shadow mem for the last k (1 ≤ k ≤ SCALE - 1) bytes
         byte* shadow_byte = get_shadow_byte((((byte*)ptr)+(size-(size%SCALE))));
         *shadow_byte = 0;
     }
