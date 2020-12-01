@@ -32,20 +32,27 @@ struct test{
 
 void legal_heap_accesses(){
     char* x = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*8));
+    printf("Legal Heap Access - Allocated 8 bytes from address %p\n",x);
     x[7] = 'a';
     x[0] = 'b';
     x[3] = 'c';
     free(x);
+    printf("Legal Heap Access - Freed 8 bytes from address %p\n",x);
     char* y = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*13));
+    printf("Legal Heap Access - Allocated 13 bytes from address %p\n",y);
     for(int i = 0; i < 13; i++){
         y[i] = 'a';
     }
+
     int* z = (int*)__cosmix_address_sanitizer_annotation(malloc(sizeof(int)*13));
+    printf("Legal Heap Access - Allocated 13 bytes from address %p\n",z);
     z[12] = 1;
     z[11] = 1;
     z[0] = 1;
     free(z);
+    printf("Legal Heap Access - Freed 13 bytes from address %p\n",z);
     free(y);
+    printf("Legal Heap Access - Freed 13 bytes from address %p\n",y);
     exit(3);
 }
 
@@ -81,6 +88,7 @@ int main(){
     for(int i = 0; i < sizeof(tests_arr) / sizeof(struct test); i++){
         pid_t pid = fork();
         if(pid == 0){
+            printf("Starting %s Test\n", tests_arr[i].name);
             tests_arr[i].fun_ptr();
         }
         else{
