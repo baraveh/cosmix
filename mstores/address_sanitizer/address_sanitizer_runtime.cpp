@@ -16,6 +16,7 @@
 #include <string.h>
 #include <iostream>
 #include <errno.h>
+#include <utility>
 
 /* array of bytes, each byte represent an <scale> byte sequence in the address space
  * for each byte in the shadow mem - 0 means that all 8 bytes of the corresponding application
@@ -45,7 +46,7 @@ byte* get_shadow_byte(void* addr){
     return (byte*) ((((unsigned long) addr)>>SCALE_BITS) + (unsigned long)g_shadow_mem); //(Addr>>3) + Offset
 }
 
-bool is_allowed(void* ptr, size_t size){
+std::pair<bool, byte*> is_allowed(void* ptr, size_t size){
     size_t remaining_bytes = size;
     byte* curr_byte = (byte*)ptr;
     byte* curr_shadow_byte;
@@ -54,7 +55,7 @@ bool is_allowed(void* ptr, size_t size){
     if((u_int64_t)curr_byte % SCALE){
         curr_shadow_byte = get_shadow_byte(curr_byte);
         if (*curr_shadow_byte != SCALE){
-            return false;
+            return std::pair<bool, byte*>(false, curr_byte);
         }
         remaining_bytes -= (SCALE- ((u_int64_t)curr_byte % SCALE));
         curr_byte = (char*) round_up_to_scale_aligned((u_int64_t) curr_byte);
@@ -64,21 +65,22 @@ bool is_allowed(void* ptr, size_t size){
         curr_shadow_byte = get_shadow_byte(curr_byte);
         if(remaining_bytes < SCALE){
             //the last byte, and size is not scale aligned
-            return (*curr_shadow_byte >= remaining_bytes);
+            return std::pair<bool, byte*>(*curr_shadow_byte >= remaining_bytes, curr_byte);
         }
         // size is at least scale bytes, so curr shadow byte needs to allow for scale bytes
         if (*curr_shadow_byte != SCALE){
-            return false;
+            return std::pair<bool, byte*>(false, curr_byte);
         }
         remaining_bytes -= SCALE;
         curr_byte += SCALE;
     }
-    return true;
+    return std::pair<bool, byte*>(true, 0);
 }
 
 void assert_access(void* ptr, size_t s){
-    if(!is_allowed(ptr, s)){
-        std::cerr << "Access out of bounds" << std::endl;
+    std::pair<bool, byte*> result = is_allowed(ptr, s);
+    if(!result.first){
+        std::cerr << "Illegal access in address " << (unsigned long) result.second << std::endl;
         exit(3);
     }
 }
