@@ -31,10 +31,8 @@ struct test{
 
 
 void legal_heap_accesses(){
-    printf("test1");
     char* x = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*8));
-    printf("test2");
-    printf("Legal Heap Access - Allocated 8 bytes from address %p\n",x);
+    printf("Legal Heap Access - Allocated 8 bytes from address %lx\n",(unsigned long) x);
     x[7] = 'a';
     x[0] = 'b';
     x[3] = 'c';
