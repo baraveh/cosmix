@@ -81,10 +81,10 @@ int main(){
             int status;
             waitpid(pid, &status, 0);
             if (WIFEXITED(status) && WEXITSTATUS(status) == 3){
-                printf("%s Test Passed", tests_arr[i].name);
+                printf("%s Test Passed\n", tests_arr[i].name);
             }
             else{
-                printf("%s Test Failed", tests_arr[i].name);
+                printf("%s Test Failed\n", tests_arr[i].name);
             }
         }
     }

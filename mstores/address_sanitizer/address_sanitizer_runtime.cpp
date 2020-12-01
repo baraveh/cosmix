@@ -126,10 +126,10 @@ int address_sanitizer_mstore_init(void *priv_data) {
         return -errno;
     }
     g_shadow_mem_size = (mem_limit.rlim_cur)/SCALE;
-    printf("memory size is %lu, shadow mem size is %lu", mem_limit.rlim_cur, g_shadow_mem_size);
     g_shadow_mem = (byte*) mmap(nullptr, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     if(g_shadow_mem == MAP_FAILED){
-        printf("mmap failed with %d - %s", errno, strerror(errno));
+        printf("memory size is %lu, shadow mem size is %lu\n", mem_limit.rlim_cur, g_shadow_mem_size);
+        printf("mmap failed with %d - %s\n", errno, strerror(errno));
         return -errno;
     }
     return 0;
