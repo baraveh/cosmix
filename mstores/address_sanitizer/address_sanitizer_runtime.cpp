@@ -80,7 +80,7 @@ std::pair<bool, byte*> is_allowed(void* ptr, size_t size){
 void assert_access(void* ptr, size_t s){
     std::pair<bool, byte*> result = is_allowed(ptr, s);
     if(!result.first){
-        std::cerr << "Illegal access in address " << (unsigned long) result.second << std::endl;
+        std::cerr << "Illegal access in address " << result.second << std::endl;
         exit(3);
     }
 }
