@@ -88,6 +88,7 @@ void assert_access(void* ptr, size_t s){
 }
 
 void mark_as_redzone(void* red_zone_ptr){
+    printf("marking %d bytes as redzone, starting from address %p", REDZONE_BYTES, red_zone_ptr);
     for(int scale_byte_chunk = 0; scale_byte_chunk < REDZONE_BYTES/SCALE; scale_byte_chunk++){
         printf("marking %p as redzone\n", (byte*)red_zone_ptr+SCALE*scale_byte_chunk);
         byte* shadow_byte = get_shadow_byte((byte*)red_zone_ptr+SCALE*scale_byte_chunk);
@@ -96,6 +97,7 @@ void mark_as_redzone(void* red_zone_ptr){
 }
 
 void mark_as_allocated(void* ptr, size_t size){
+    printf("marking %lu bytes as allocated, starting from address %p", size, ptr);
     for(int scale_byte_chunk = 0; scale_byte_chunk < size/SCALE; scale_byte_chunk++){
         printf("marking %p as allocated\n", (((byte*)ptr)+SCALE*scale_byte_chunk));
         byte* shadow_byte = get_shadow_byte((((byte*)ptr)+SCALE*scale_byte_chunk));
@@ -109,6 +111,7 @@ void mark_as_allocated(void* ptr, size_t size){
 }
 
 void mark_as_freed(void* ptr, size_t size){
+    printf("marking %lu bytes as freed, starting from address %p", size, ptr);
     for(int scale_byte_chunk = 0; scale_byte_chunk < size/SCALE; scale_byte_chunk++){
         printf("marking %p as freed\n", (((byte*)ptr)+SCALE*scale_byte_chunk));
         byte* shadow_byte = get_shadow_byte((((byte*)ptr)+SCALE*scale_byte_chunk));
