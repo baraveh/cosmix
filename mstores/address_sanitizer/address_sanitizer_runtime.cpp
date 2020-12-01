@@ -172,7 +172,7 @@ void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
     byte* start_redzone = ptr;
     mark_as_redzone(start_redzone);
     byte* actual_ptr = ptr + REDZONE_BYTES;
-    mark_as_allocated(ptr, size);
+    mark_as_allocated(actual_ptr, size);
     byte* end_redzone = actual_ptr + round_up_to_scale_aligned(size);
     mark_as_redzone(end_redzone);
     return actual_ptr;
