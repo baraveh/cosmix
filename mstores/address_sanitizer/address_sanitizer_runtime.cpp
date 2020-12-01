@@ -96,7 +96,7 @@ void mark_as_redzone(void* red_zone_ptr){
 }
 
 void mark_as_allocated(void* ptr, size_t size){
-    for(int scale_byte_chunk = 0; scale_byte_chunk < REDZONE_BYTES/SCALE; scale_byte_chunk++){
+    for(int scale_byte_chunk = 0; scale_byte_chunk < size/SCALE; scale_byte_chunk++){
         printf("marking %p as allocated\n", (((byte*)ptr)+SCALE*scale_byte_chunk));
         byte* shadow_byte = get_shadow_byte((((byte*)ptr)+SCALE*scale_byte_chunk));
         *shadow_byte = SCALE;
@@ -109,7 +109,7 @@ void mark_as_allocated(void* ptr, size_t size){
 }
 
 void mark_as_freed(void* ptr, size_t size){
-    for(int scale_byte_chunk = 0; scale_byte_chunk < REDZONE_BYTES/SCALE; scale_byte_chunk++){
+    for(int scale_byte_chunk = 0; scale_byte_chunk < size/SCALE; scale_byte_chunk++){
         printf("marking %p as freed\n", (((byte*)ptr)+SCALE*scale_byte_chunk));
         byte* shadow_byte = get_shadow_byte((((byte*)ptr)+SCALE*scale_byte_chunk));
         *shadow_byte = 0;
