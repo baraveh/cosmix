@@ -193,11 +193,21 @@ void address_sanitizer_mstore_free(void *ptr){
 }
 
 size_t address_sanitizer_mstore_alloc_size(void *ptr){
-    byte* curr_shadow_byte_ptr = get_shadow_byte(ptr);
+    byte* curr_byte = (byte*) ptr;
+    byte* curr_shadow_byte = get_shadow_byte(curr_byte);
     size_t alloc_size = 0;
-    while(*(curr_shadow_byte_ptr) > 0){
-        alloc_size += *(curr_shadow_byte_ptr);
-        curr_shadow_byte_ptr = get_shadow_byte((byte*)ptr + alloc_size);
+    if ((uintptr_t)(curr_byte) % SCALE){
+        if(*curr_shadow_byte != SCALE){
+            return 0;
+        }
+        alloc_size += SCALE - ((uintptr_t)(curr_byte) % SCALE);
+        curr_byte = (byte*) round_up_to_scale_aligned((uintptr_t) curr_byte);
+        curr_shadow_byte = get_shadow_byte(curr_byte);
+    }
+    while(*(curr_shadow_byte) > 0){
+        alloc_size += *(curr_shadow_byte);
+        curr_byte += SCALE;
+        curr_shadow_byte = (byte*) get_shadow_byte(curr_byte);
     }
     return alloc_size;
 }
