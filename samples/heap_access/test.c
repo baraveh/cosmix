@@ -32,7 +32,7 @@ struct test{
 
 void legal_heap_accesses(){
     char* x = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*8));
-    printf("Legal Heap Access - Allocated 8 bytes from address %lx\n",(unsigned long) x);
+    printf("Legal Heap Access - Allocated 8 bytes from address %p\n", x);
     x[7] = 'a';
     x[0] = 'b';
     x[3] = 'c';
