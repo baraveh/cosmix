@@ -49,6 +49,7 @@ byte* get_shadow_byte(void* addr){
 }
 
 std::pair<bool, byte*> is_allowed(void* ptr, size_t size){
+    debug_print("checking permissions for a %lu byte access, starting from address %p\n", size, ptr);
     size_t remaining_bytes = size;
     byte* curr_byte = (byte*)ptr;
     byte* curr_shadow_byte;
