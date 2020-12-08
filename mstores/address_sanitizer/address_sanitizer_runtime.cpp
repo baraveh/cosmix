@@ -57,7 +57,7 @@ std::pair<bool, byte*> is_allowed(void* ptr, size_t size){
     // if pointer is not scale-aligned, special handling of the first byte
     if((uintptr_t)curr_byte % SCALE){
         curr_shadow_byte = get_shadow_byte(curr_byte);
-        debug_print("checking permissions for %p - %p, shadow byte is %d\n", curr_byte, (byte*) round_up_to_scale_aligned((uintptr_t) curr_byte) - 1, *curr_shadow_byte);
+        debug_print("permissions for address range %p - %p: shadow byte is %d\n", curr_byte, (byte*) round_up_to_scale_aligned((uintptr_t) curr_byte) - 1, *curr_shadow_byte);
         if (*curr_shadow_byte != SCALE){
             return std::pair<bool, byte*>(false, curr_byte);
         }
@@ -69,12 +69,12 @@ std::pair<bool, byte*> is_allowed(void* ptr, size_t size){
         curr_shadow_byte = get_shadow_byte(curr_byte);
 
         if(remaining_bytes < SCALE){
-            debug_print("checking permissions for %p - %p, shadow byte is %d\n", curr_byte, curr_byte + remaining_bytes,  *curr_shadow_byte);
+            debug_print("permissions for address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + remaining_bytes - 1,  *curr_shadow_byte);
             //the last byte, and size is not scale aligned
             return std::pair<bool, byte*>((*curr_shadow_byte) >= remaining_bytes, curr_byte);
         }
         // size is at least scale bytes, so curr shadow byte needs to allow for scale bytes
-        debug_print("checking permissions for %p - %p, shadow byte is %d\n", curr_byte, curr_byte + SCALE - 1,  *curr_shadow_byte);
+        debug_print("checking permissions for address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + SCALE - 1,  *curr_shadow_byte);
         if (*curr_shadow_byte != SCALE){
             return std::pair<bool, byte*>(false, curr_byte);
         }
@@ -166,6 +166,7 @@ void address_sanitizer_mpf_handler_d(void *ptr, void *dst, size_t s){
 }
 
 void address_sanitizer_write_back(void *ptr, void *dst, size_t s){
+    debug_print("write back size of %zu bytes from %p to %p\n", s, ptr, dst);
     assert_access(ptr, s);
     assert_access(dst, s);
     memcpy(dst, ptr, s);
@@ -193,6 +194,7 @@ void address_sanitizer_mstore_free(void *ptr){
 }
 
 size_t address_sanitizer_mstore_alloc_size(void *ptr){
+    debug_print("getting alloc size of pointer %p\n", ptr);
     byte* curr_byte = (byte*) ptr;
     byte* curr_shadow_byte = get_shadow_byte(curr_byte);
     size_t alloc_size = 0;
