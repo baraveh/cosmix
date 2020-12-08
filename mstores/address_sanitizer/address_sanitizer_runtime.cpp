@@ -163,6 +163,7 @@ int address_sanitizer_mstore_cleanup(){
 
 void address_sanitizer_mpf_handler_d(void *ptr, void *dst, size_t s){
     debug_print("page fault - copying %zu bytes from %p to %p\n", s, ptr, dst);
+    assert_access(ptr, s);
     memcpy(dst, ptr, s);
 }
 
