@@ -69,7 +69,7 @@ std::pair<bool, byte*> is_allowed(void* ptr, size_t size){
         curr_shadow_byte = get_shadow_byte(curr_byte);
 
         if(remaining_bytes < SCALE){
-            debug_print("permissions for address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + remaining_bytes - 1,  *curr_shadow_byte);
+            debug_print("permissions for address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + remaining_bytes,  *curr_shadow_byte);
             //the last byte, and size is not scale aligned
             return std::pair<bool, byte*>((*curr_shadow_byte) >= remaining_bytes, curr_byte);
         }
@@ -162,7 +162,8 @@ int address_sanitizer_mstore_cleanup(){
 }
 
 void address_sanitizer_mpf_handler_d(void *ptr, void *dst, size_t s){
-    address_sanitizer_write_back(ptr, dst, s);
+    debug_print("page fault - copying %zu bytes from %p to %p\n", s, ptr, dst);
+    memcpy(dst, ptr, s);
 }
 
 void address_sanitizer_write_back(void *ptr, void *dst, size_t s){
