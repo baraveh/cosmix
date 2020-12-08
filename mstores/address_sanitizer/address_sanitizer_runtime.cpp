@@ -169,7 +169,6 @@ void address_sanitizer_mpf_handler_d(void *ptr, void *dst, size_t s){
 void address_sanitizer_write_back(void *ptr, void *dst, size_t s){
     debug_print("write back size of %zu bytes from %p to %p\n", s, ptr, dst);
     assert_access(ptr, s);
-    assert_access(dst, s);
     memcpy(dst, ptr, s);
 }
 
