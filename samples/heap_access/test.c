@@ -70,7 +70,7 @@ void heap_access_after_free(){
     char* x = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*8));
     printf("Access After Free - Allocated 8 bytes from address %p\n", x);
     free(x);
-    printf("Access After Free - Freed 8 bytes from address %p\n", x);
+    printf("Access After Free - Freed 8 bytes from address %lx\n", (unsigned long)x);
     printf("Access After Free - Trying to illegally access %lx\n", (unsigned long)(x + 1));
     x[1] = 'a'; //should exit here
     assert(0);
