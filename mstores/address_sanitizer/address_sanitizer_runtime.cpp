@@ -7,7 +7,7 @@
 #define SCALE (1<<SCALE_BITS)
 #define REDZONE_BYTES (SCALE) //must be scale aligned
 #define MEMORY_SIZE (1<<30)
-#define DEBUG 1
+#define DEBUG 0
 #define debug_print(fmt, ...) \
             do { if (DEBUG) {fprintf(stderr, "***Debug*** - "); fprintf(stderr, fmt, __VA_ARGS__);} } while (0)
 
