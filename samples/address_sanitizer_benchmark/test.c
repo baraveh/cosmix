@@ -84,6 +84,27 @@ void legal_stack_accesses(){
     for(int i = 0; i < 8; i ++){
         z[i] = i;
     }
+    exit(0);
+}
+
+void left_stack_overflow(){
+    volatile char x[26] __attribute__((annotate("address_sanitizer")));
+    x[0] = 'a';
+    x[1] = 'b';
+    x[2] = 'c';
+    x[25] = 'z';
+    x[-1] = 'e'; //should exit here
+    assert(0);
+}
+
+void right_stack_overflow(){
+    volatile char x[26] __attribute__((annotate("address_sanitizer")));
+    x[0] = 'a';
+    x[1] = 'b';
+    x[2] = 'c';
+    x[25] = 'z';
+    x[27] = 'e'; //should exit here
+    assert(0);
 }
 
 /** When in doubt - change debug flag to 1 in address sanitizer runtime and check prints **/
