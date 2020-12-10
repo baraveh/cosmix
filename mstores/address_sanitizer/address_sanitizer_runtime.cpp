@@ -164,13 +164,13 @@ int address_sanitizer_mstore_cleanup(){
 void address_sanitizer_mpf_handler_d(void *ptr, void *dst, size_t s){
     debug_print("page fault - copying %zu bytes from %p to %p\n", s, ptr, dst);
     assert_access(ptr, s);
-    memcpy(dst, ptr, s);
+    //memcpy(dst, ptr, s);
 }
 
 void address_sanitizer_write_back(void *ptr, void *dst, size_t s){
     debug_print("write back size of %zu bytes from %p to %p\n", s, ptr, dst);
     assert_access(ptr, s);
-    memcpy(dst, ptr, s);
+    //memcpy(dst, ptr, s);
 }
 
 void *address_sanitizer_mstore_alloc(size_t size, void *private_data){

@@ -927,7 +927,8 @@ INLINEATTR void __cosmix_writeback_direct_template(const void* ptr, int ptr_size
 			abort();
 	}
 
-	void* dest = __cosmix_get_mstore_direct_buffer(mpage_size);
+	//void* dest = __cosmix_get_mstore_direct_buffer(mpage_size);
+    void* dest = nullptr;
 
 	// Note: internally, there might be multiple fetches from mstorage if the offset is between mpages
 	//
@@ -995,13 +996,14 @@ INLINEATTR void* __cosmix_link_direct_template(const void* ptr, int ptr_size, ch
 	//
 	ASSERT(mpage_size >= ptr_size);
 
-	void* dest = __cosmix_get_mstore_direct_buffer(mpage_size);
+	//void* dest = __cosmix_get_mstore_direct_buffer(mpage_size);
+    void* dest = nullptr;
 
 	// Note: internally, there might be multiple fetches from mstorage if the offset is between mpages
 	//
 	mpf_handler_d(unmasked_bs_ptr, dest, ptr_size);
 
-	return dest;
+	return unmasked_bs_ptr;
 }
 
 void* __cosmix_link_generic(const void* ptr, int ptr_size, char is_vector_type, char dirty) 
