@@ -55,7 +55,7 @@ void left_heap_overflow(){
     printf("Left Heap Overflow - Allocated 8 bytes from address %p\n",x);
     printf("Left Heap Overflow - Trying to illegally access %p\n",(x - 1));
     x[-1] = 'a'; //should exit here
-    assert(false);
+    assert(0);
 }
 
 void right_heap_overflow(){
@@ -63,7 +63,7 @@ void right_heap_overflow(){
     printf("Right Heap Overflow - Allocated 8 bytes from address %p\n", x);
     printf("Right Heap Overflow - Trying to illegally access %p\n", (x + 10));
     x[10] = 'a'; //should exit here
-    assert(false);
+    assert(0);
 }
 
 void heap_access_after_free(){
@@ -73,7 +73,7 @@ void heap_access_after_free(){
     printf("Access After Free - Freed 8 bytes from address %p\n", x);
     printf("Access After Free - Trying to illegally access %p\n", (x + 1));
     x[1] = 'a'; //should exit here
-    assert(false);
+    assert(0);
 }
 
 /** When in doubt - change debug flag to 1 in address sanitizer runtime and check prints **/
