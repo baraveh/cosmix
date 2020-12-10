@@ -53,7 +53,7 @@ void legal_heap_accesses(){
 void left_heap_overflow(){
     char* x = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*8));
     printf("Left Heap Overflow - Allocated 8 bytes from address %p\n",x);
-    printf("Left Heap Overflow - Trying to illegally access %lu\n",(unsigned long)(x - 1));
+    printf("Left Heap Overflow - Trying to illegally access %lx\n",(unsigned long)(x - 1));
     x[-1] = 'a'; //should exit here
     assert(0);
 }
@@ -61,7 +61,7 @@ void left_heap_overflow(){
 void right_heap_overflow(){
     char* x = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*8));
     printf("Right Heap Overflow - Allocated 8 bytes from address %p\n", x);
-    printf("Right Heap Overflow - Trying to illegally access %p\n", (x + 10));
+    printf("Right Heap Overflow - Trying to illegally access %lx\n", (unsigned long)(x + 10));
     x[10] = 'a'; //should exit here
     assert(0);
 }
@@ -71,7 +71,7 @@ void heap_access_after_free(){
     printf("Access After Free - Allocated 8 bytes from address %p\n", x);
     free(x);
     printf("Access After Free - Freed 8 bytes from address %p\n", x);
-    printf("Access After Free - Trying to illegally access %p\n", (x + 1));
+    printf("Access After Free - Trying to illegally access %lx\n", (unsigned long)(x + 1));
     x[1] = 'a'; //should exit here
     assert(0);
 }

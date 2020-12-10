@@ -9,7 +9,7 @@
 #define MEMORY_SIZE (1<<30)
 #define DEBUG 1
 #define debug_print(fmt, ...) \
-            do { if (DEBUG) {fprintf(stderr, "*** Address Sanitizer Debug *** - "); fprintf(stderr, fmt, __VA_ARGS__);} } while (0)
+            do { if (DEBUG) {fprintf(stderr, "***Debug*** - "); fprintf(stderr, fmt, __VA_ARGS__);} } while (0)
 
 #include "address_sanitizer_runtime.h"
 #include <sys/mman.h>
@@ -63,7 +63,7 @@ std::pair<bool, byte*> is_allowed(void* ptr, long size){
         if(size + ((uintptr_t)curr_byte % SCALE) < SCALE){
             // the entire access is wholly contained in one sequence
             debug_print("checking permissions for address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + size, *(curr_shadow_byte));
-            return std::pair<bool, byte*>(*(curr_shadow_byte) >= size + ((uintptr_t)curr_byte % SCALE) , curr_byte);
+            return std::pair<bool, byte*>(((*(curr_shadow_byte)) >= (size + ((uintptr_t)curr_byte % SCALE))), curr_byte);
         }
         debug_print("checking permissions for address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + SCALE, *(curr_shadow_byte));
         if(*(curr_shadow_byte) != SCALE){
