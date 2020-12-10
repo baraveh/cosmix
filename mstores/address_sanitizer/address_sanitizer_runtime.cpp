@@ -9,7 +9,7 @@
 #define MEMORY_SIZE (1<<30)
 #define DEBUG 1
 #define debug_print(fmt, ...) \
-            do { if (DEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+            do { if (DEBUG) {fprintf(stderr, "*** Address Sanitizer Debug *** - "); fprintf(stderr, fmt, __VA_ARGS__);} } while (0)
 
 #include "address_sanitizer_runtime.h"
 #include <sys/mman.h>
@@ -48,7 +48,7 @@ byte* get_shadow_byte(void* addr){
     return (byte*) ((((uintptr_t) addr)>>SCALE_BITS) + g_shadow_mem); //(Addr>>3) + Offset
 }
 
-std::pair<bool, byte*> is_allowed(void* ptr, size_t size){
+std::pair<bool, byte*> is_allowed(void* ptr, long size){
     if(size == 0){
         return std::pair<bool, byte*>(true, 0);
     }
@@ -87,7 +87,7 @@ std::pair<bool, byte*> is_allowed(void* ptr, size_t size){
 }
 
 void assert_access(void* ptr, size_t s){
-    std::pair<bool, byte*> result = is_allowed(ptr, s);
+    std::pair<bool, byte*> result = is_allowed(ptr, (long)s);
     if(!result.first){
         debug_print("Illegal access in address %p\n", result.second);
         exit(3);
