@@ -18,6 +18,7 @@ void legal_heap_accesses();
 void left_heap_overflow();
 void right_heap_overflow();
 void heap_access_after_free();
+void legal_stack_accesses();
 
 struct test{
     char name[64];
@@ -26,7 +27,8 @@ struct test{
         {"Legal Heap Access", legal_heap_accesses},
         {"Left Heap Overflow", left_heap_overflow},
         {"Right Heap Overflow", right_heap_overflow},
-        {"Heap Access After Free", heap_access_after_free}
+        {"Heap Access After Free", heap_access_after_free},
+        {"Legal Stack Access", legal_stack_accesses}
 };
 
 
@@ -66,6 +68,22 @@ void heap_access_after_free(){
     free(x);
     x[1] = 'a'; //should exit here
     assert(0);
+}
+
+void legal_stack_accesses(){
+    volatile char x[26] __attribute__((annotate("address_sanitizer")));
+    x[0] = 'a';
+    x[1] = 'b';
+    x[2] = 'c';
+    x[25] = 'z';
+    volatile char y[8] __attribute__((annotate("address_sanitizer")));
+    for(int i = 0; i < 8; i++){
+        y[i] = 'a';
+    }
+    volatile int z[8] __attribute__((annotate("address_sanitizer")));
+    for(int i = 0; i < 8; i ++){
+        z[i] = i;
+    }
 }
 
 /** When in doubt - change debug flag to 1 in address sanitizer runtime and check prints **/
