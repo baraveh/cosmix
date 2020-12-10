@@ -3,7 +3,7 @@
 //
 
 
-#define SCALE_BITS (4)
+#define SCALE_BITS (3)
 #define SCALE (1<<SCALE_BITS)
 #define REDZONE_BYTES (SCALE) //must be scale aligned
 #define MEMORY_SIZE (1<<30)

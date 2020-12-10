@@ -83,7 +83,8 @@ void access_after_free(){
     exit(0);
 }
 
-/** test pass ==> exit code = 3 **/
+/** test pass ==> exit code = 3
+ * When in doubt - change debug flag to 1 in address sanitizer runtime and check prints **/
 int main(){
     for(int i = 0; i < sizeof(tests_arr) / sizeof(struct test); i++){
         pid_t pid = fork();
