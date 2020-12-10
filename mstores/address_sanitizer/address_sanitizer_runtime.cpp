@@ -58,12 +58,13 @@ std::pair<bool, byte*> is_allowed(void* ptr, long size){
 
     // special handling of the first sequence in case ptr isn't scale aligned
     if((uintptr_t)curr_byte % SCALE){
-        debug_print("start address %p isn't %d aligned\n", ptr, SCALE);
+        long sequence_bytes = size + (((uintptr_t)curr_byte % SCALE));
+        debug_print("start address %p isn't %d aligned, bytes per this sequence are %ld\n", ptr, SCALE, sequence_bytes);
         curr_shadow_byte = get_shadow_byte(curr_byte);
-        if(size + ((uintptr_t)curr_byte % SCALE) < SCALE){
+        if(sequence_bytes < SCALE){
             // the entire access is wholly contained in one sequence
             debug_print("checking permissions for address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + size, *(curr_shadow_byte));
-            return std::pair<bool, byte*>(((*(curr_shadow_byte)) >= (size + ((uintptr_t)curr_byte % SCALE))), curr_byte);
+            return std::pair<bool, byte*>((*(curr_shadow_byte)) >= sequence_bytes, curr_byte);
         }
         debug_print("checking permissions for address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + SCALE, *(curr_shadow_byte));
         if(*(curr_shadow_byte) != SCALE){
