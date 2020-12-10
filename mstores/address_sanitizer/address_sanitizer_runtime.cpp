@@ -216,5 +216,6 @@ size_t address_sanitizer_mstore_alloc_size(void *ptr){
 }
 
 size_t address_sanitizer_mstore_get_mpage_size(){
-    return sysconf(_SC_PAGESIZE);
+    //return sysconf(_SC_PAGESIZE);
+    return 1;
 }
