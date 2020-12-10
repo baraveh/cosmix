@@ -19,6 +19,8 @@ void left_heap_overflow();
 void right_heap_overflow();
 void heap_access_after_free();
 void legal_stack_accesses();
+void left_stack_overflow();
+void right_stack_overflow();
 
 struct test{
     char name[64];
@@ -28,7 +30,9 @@ struct test{
         {"Left Heap Overflow", left_heap_overflow},
         {"Right Heap Overflow", right_heap_overflow},
         {"Heap Access After Free", heap_access_after_free},
-        {"Legal Stack Access", legal_stack_accesses}
+        {"Legal Stack Access", legal_stack_accesses},
+        {"Left Stack Overflow", left_stack_overflow},
+        {"Right Stack Overflow", right_stack_overflow}
 };
 
 
