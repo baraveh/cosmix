@@ -65,17 +65,17 @@ std::pair<bool, byte*> is_allowed(void* ptr, size_t size){
             debug_print("checking permissions for address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + size, *(curr_shadow_byte));
             return std::pair<bool, byte*>(*(curr_shadow_byte) >= size + ((uintptr_t)curr_byte % SCALE) , curr_byte);
         }
-        debug_print("checking permissions for address range %p - %p: shadow byte is %d\n", curr_byte, (byte*) round_up_to_scale_aligned(curr_byte), *(curr_shadow_byte));
+        debug_print("checking permissions for address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + SCALE, *(curr_shadow_byte));
         if(*(curr_shadow_byte) != SCALE){
-            return std::pair<bool, byte*>(false , curr_byte)
+            return std::pair<bool, byte*>(false , curr_byte);
         }
     }
 
-    for(curr_byte = round_up_to_scale_aligned(curr_byte); curr_byte < (((byte*)ptr) + size); curr_byte += SCALE){
+    for(curr_byte = (byte*) round_up_to_scale_aligned((uintptr_t) curr_byte); curr_byte < (((byte*)ptr) + size); curr_byte += SCALE){
         curr_shadow_byte = get_shadow_byte(curr_byte);
         if((((byte*)ptr) + size) - curr_byte < SCALE){
             //last sequence, and ptr + size isn't scale aligned
-            debug_print("checking permissions for address range %p - %p: shadow byte is %d\n", curr_byte, ptr + size, *(curr_shadow_byte));
+            debug_print("checking permissions for address range %p - %p: shadow byte is %d\n", curr_byte, (((byte*)ptr) + size), *(curr_shadow_byte));
             return std::pair<bool, byte*>(*(curr_shadow_byte) >= (((byte*)ptr) + size) - curr_byte , curr_byte);
         }
         debug_print("checking permissions for address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + SCALE, *(curr_shadow_byte));
