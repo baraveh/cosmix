@@ -32,7 +32,7 @@ void left_global_overflow();
 void right_global_overflow();
 
 struct test{
-    char name[64];
+    char name[32];
     void (*fun_ptr)();
 } tests_arr[] = {
         {"Legal Heap Access", legal_heap_accesses},
