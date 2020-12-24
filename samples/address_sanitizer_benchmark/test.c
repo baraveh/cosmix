@@ -21,6 +21,7 @@ void heap_access_after_free();
 void legal_stack_accesses();
 void left_stack_overflow();
 void right_stack_overflow();
+void access_char_array_at(size_t i, const char*);
 
 struct test{
     char name[64];
@@ -94,16 +95,14 @@ void legal_stack_accesses(){
 void left_stack_overflow(){
     volatile char x[1] __attribute__((annotate("address_sanitizer")));
     x[0] = 'a';
-    printf("Left Stack Overflow - insert a string with a length of more than 2 chars\n");
-    scanf("%s", x); //should exit here
+    access_char_array_at(-1, x);
     assert(0);
 }
 
 void right_stack_overflow(){
     volatile char x[1] __attribute__((annotate("address_sanitizer")));
     x[0] = 'a';
-    printf("Right Stack Overflow - insert a string with a length of more than 2 chars\n");
-    scanf("%s", x); //should exit here
+    access_char_array_at(2, x);
     assert(0);
 }
 
@@ -121,4 +120,8 @@ int main(){
             printf("%s Test Finished\n", tests_arr[i].name);
         }
     }
+}
+
+void access_char_array_at(size_t i, const char* a){
+    printf("%c", a[i]);
 }
