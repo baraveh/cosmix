@@ -13,6 +13,9 @@
 #include <assert.h>
 #include <sys/wait.h>
 
+volatile char global_char_arr[8] __attribute__((annotate("address_sanitizer")));
+volatile char global_int_arr[8] __attribute__((annotate("address_sanitizer")));
+
 extern void* __cosmix_address_sanitizer_annotation(void* ptr);
 void legal_heap_accesses();
 void left_heap_overflow();
@@ -22,6 +25,9 @@ void legal_stack_accesses();
 void left_stack_overflow();
 void right_stack_overflow();
 void access_char_array_at(size_t, char*);
+void legal_global_accesses();
+void left_global_overflow();
+void right_global_overflow()
 
 struct test{
     char name[64];
@@ -33,7 +39,10 @@ struct test{
         {"Heap Access After Free", heap_access_after_free},
         {"Legal Stack Access", legal_stack_accesses},
         {"Left Stack Overflow", left_stack_overflow},
-        {"Right Stack Overflow", right_stack_overflow}
+        {"Right Stack Overflow", right_stack_overflow},
+        {"Legal Global Access", legal_global_accesses},
+        {"Left Global Overflow", left_global_overflow},
+        {"Right Global Overflow", right_global_overflow}
 };
 
 
@@ -103,6 +112,30 @@ void right_stack_overflow(){
     volatile char x[1] __attribute__((annotate("address_sanitizer")));
     x[0] = 'a';
     access_char_array_at(2, x);
+    assert(0);
+}
+
+void legal_global_accesses(){
+    x = global_char_arr;
+    x[0] = 'a';
+    x[1] = 'b';
+    x[2] = 'c';
+    x = global_int_arr;
+    x[0] = 1;
+    x[1] = 2;
+    x[7] = 3;
+    exit(0);
+}
+
+void left_global_overflow(){
+    x = global_char_arr;
+    access_char_array_at(-1, x);
+    assert(0);
+}
+
+void right_global_overflow(){
+    x = global_char_arr;
+    access_char_array_at(10, x);
     assert(0);
 }
 
