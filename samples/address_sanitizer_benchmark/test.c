@@ -97,7 +97,7 @@ void left_stack_overflow(){
     x[1] = 'b';
     x[2] = 'c';
     x[25] = 'z';
-    x[-1] = 'e'; //should exit here
+    sprintf(x, "abcdefghijuklmnopqurstuvwxyz!"); //should exit here
     assert(0);
 }
 
@@ -107,7 +107,7 @@ void right_stack_overflow(){
     x[1] = 'b';
     x[2] = 'c';
     x[25] = 'z';
-    x[27] = 'e'; //should exit here
+    sprintf(x, "abcdefghijuklmnopqurstuvwxyz!"); //should exit here
     assert(0);
 }
 
