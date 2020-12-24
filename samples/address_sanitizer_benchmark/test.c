@@ -161,4 +161,5 @@ int main(){
 
 void access_char_array_at(size_t i, volatile char* a){
     a[i] = 'e';
+    printf("%c", a[i]);
 }
