@@ -21,7 +21,7 @@ void heap_access_after_free();
 void legal_stack_accesses();
 void left_stack_overflow();
 void right_stack_overflow();
-void access_char_array_at(size_t i, const char*);
+void access_char_array_at(size_t, char*);
 
 struct test{
     char name[64];
