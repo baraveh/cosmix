@@ -128,7 +128,7 @@ void legal_global_accesses(){
     for(int i = 0; i < 8; i++){
         printf("%d\n", global_int_arr[i]);
     }
-    printf("%c", global_char);
+    printf("%c\n", global_char);
     exit(0);
 }
 
