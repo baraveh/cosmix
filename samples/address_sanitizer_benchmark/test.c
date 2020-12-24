@@ -92,22 +92,18 @@ void legal_stack_accesses(){
 }
 
 void left_stack_overflow(){
-    volatile char x[26] __attribute__((annotate("address_sanitizer")));
+    volatile char x[1] __attribute__((annotate("address_sanitizer")));
     x[0] = 'a';
-    x[1] = 'b';
-    x[2] = 'c';
-    x[25] = 'z';
-    sprintf(x, "abcdefghijuklmnopqurstuvwxyz!"); //should exit here
+    printf("Left Stack Overflow - insert a string with a length of more than 2 chars\n");
+    scanf("%s", x); //should exit here
     assert(0);
 }
 
 void right_stack_overflow(){
-    volatile char x[26] __attribute__((annotate("address_sanitizer")));
+    volatile char x[1] __attribute__((annotate("address_sanitizer")));
     x[0] = 'a';
-    x[1] = 'b';
-    x[2] = 'c';
-    x[25] = 'z';
-    sprintf(x, "abcdefghijuklmnopqurstuvwxyz!"); //should exit here
+    printf("Right Stack Overflow - insert a string with a length of more than 2 chars\n");
+    scanf("%s", x); //should exit here
     assert(0);
 }
 
