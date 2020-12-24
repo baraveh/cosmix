@@ -1214,7 +1214,7 @@ public:
 										// we have the annotation! Check it's an epona annotation and process
 										StringRef AS1 = A->getAsString();
 										const char* temp = AS1.str().c_str();
-										std::string temp1 = temp;
+										std::string temp1 = std::string(temp);
 										errs() << temp1 << "\n";
 										if (isa<GlobalVariable>(CS->getOperand(0)->getOperand(0))) 
 										{
