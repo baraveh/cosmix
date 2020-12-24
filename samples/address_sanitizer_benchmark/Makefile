@@ -13,7 +13,7 @@ address_sanitizer: test.c cosmix
 	$(LLVM_BIN)/clang -O3 -emit-llvm -c test.c "-DADDRESS_SANITIZER_TEST" -o test.bc
 	$(LLVM_BIN)/llvm-link test.bc ../../runtime/cosmix_runtime.bc ../../mstores/address_sanitizer/address_sanitizer.bc ../../mstores/common/common.bc -o test_wrappers.bc
 	$(LLVM_BIN)/opt < test_wrappers.bc -gvn -gvn-hoist -gvn-sink -loop-simplify -licm > test_loop_simplify.bc
-	$(LLVM_BIN)/opt -load ../../pass/cosmix.so < test_loop_simplify.bc -cosmix -replace_all_allocators=false -code_analysis_integers=false -config_file=$(current_dir)/address_sanitizer.json > test_inst.bc
+	$(LLVM_BIN)/opt -load ../../pass/cosmix.so < test_loop_simplify.bc -cosmix -replace_all_allocators=false -code_analysis=false -config_file=$(current_dir)/address_sanitizer.json > test_inst.bc
 	$(LLVM_BIN)/opt -O3 < test_inst.bc > test_opt.bc
 	$(LLVM_BIN)/llc -relocation-model=pic -filetype=obj test_opt.bc -o test.o
 	g++ test.o -o address_sanitizer
