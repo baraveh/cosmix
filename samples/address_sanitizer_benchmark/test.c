@@ -27,7 +27,7 @@ void right_stack_overflow();
 void access_char_array_at(size_t, volatile char*);
 void legal_global_accesses();
 void left_global_overflow();
-void right_global_overflow()
+void right_global_overflow();
 
 struct test{
     char name[64];
