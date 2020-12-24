@@ -126,11 +126,13 @@ void legal_global_accesses(){
 }
 
 void left_global_overflow(){
+    global_char_arr[0] = 'b';
     access_char_array_at(-1, global_char_arr);
     assert(0);
 }
 
 void right_global_overflow(){
+    global_char_arr[0] = 'b';
     access_char_array_at(10, global_char_arr);
     assert(0);
 }
