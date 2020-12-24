@@ -157,7 +157,7 @@ int main(){
         else{
             int status;
             waitpid(pid, &status, 0);
-            printf("%s Test Finished Exit Code %d\n", tests_arr[i].name, status);
+            printf("%s Test Finished Exit Code %d\n", tests_arr[i].name, WEXITSTATUS(status));
         }
     }
 }
