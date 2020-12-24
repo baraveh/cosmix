@@ -122,6 +122,6 @@ int main(){
     }
 }
 
-void access_char_array_at(size_t i, const char* a){
+void access_char_array_at(size_t i, char* a){
     a[i] = 'e';
 }
