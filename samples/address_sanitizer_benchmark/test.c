@@ -123,5 +123,5 @@ int main(){
 }
 
 void access_char_array_at(size_t i, const char* a){
-    printf("%c", a[i]);
+    a[i] = 'e';
 }
