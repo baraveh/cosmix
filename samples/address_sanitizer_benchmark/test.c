@@ -119,9 +119,13 @@ void legal_global_accesses(){
     global_char_arr[0] = 'a';
     global_char_arr[1] = 'b';
     global_char_arr[2] = 'c';
+    printf("%s", global_char_arr);
     global_int_arr[0] = 1;
-    global_int_arr[1] = 2;
-    global_int_arr[7] = 3;
+    global_int_arr[1] = 1;
+    global_int_arr[7] = 1;
+    for(int i = 0; i < 8; i++){
+        printf("%d", global_int_arr[i]);
+    }
     exit(0);
 }
 
@@ -129,12 +133,14 @@ void left_global_overflow(){
     global_char_arr[0] = 'b';
     access_char_array_at(-1, global_char_arr);
     assert(0);
+    printf("%s", global_char_arr);
 }
 
 void right_global_overflow(){
     global_char_arr[0] = 'b';
     access_char_array_at(10, global_char_arr);
     assert(0);
+    printf("%s", global_char_arr);
 }
 
 /** Change debug flag to 1 in address sanitizer runtime and check prints **/
