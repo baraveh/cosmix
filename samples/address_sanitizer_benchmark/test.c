@@ -13,8 +13,8 @@
 #include <assert.h>
 #include <sys/wait.h>
 
-volatile char global_char_arr[8] __attribute__((annotate("address_sanitizer")));
-volatile char global_int_arr[8] __attribute__((annotate("address_sanitizer")));
+volatile char global_char_arr[8] __attribute__((annotate("address_sanitizer"))) = {'a','b','c','d','e','f','g','\0'};
+volatile char global_int_arr[8] __attribute__((annotate("address_sanitizer"))) = {1,2,3,4,5,6,7,8};
 
 extern void* __cosmix_address_sanitizer_annotation(void* ptr);
 void legal_heap_accesses();
