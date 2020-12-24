@@ -24,7 +24,7 @@ void heap_access_after_free();
 void legal_stack_accesses();
 void left_stack_overflow();
 void right_stack_overflow();
-void access_char_array_at(size_t, char*);
+void access_char_array_at(size_t, volatile char*);
 void legal_global_accesses();
 void left_global_overflow();
 void right_global_overflow()
@@ -116,30 +116,26 @@ void right_stack_overflow(){
 }
 
 void legal_global_accesses(){
-    x = global_char_arr;
-    x[0] = 'a';
-    x[1] = 'b';
-    x[2] = 'c';
-    x = global_int_arr;
-    x[0] = 1;
-    x[1] = 2;
-    x[7] = 3;
+    global_char_arr[0] = 'a';
+    global_char_arr[1] = 'b';
+    global_char_arr[2] = 'c';
+    global_int_arr[0] = 1;
+    global_int_arr[1] = 2;
+    global_int_arr[7] = 3;
     exit(0);
 }
 
 void left_global_overflow(){
-    x = global_char_arr;
-    access_char_array_at(-1, x);
+    access_char_array_at(-1, global_char_arr);
     assert(0);
 }
 
 void right_global_overflow(){
-    x = global_char_arr;
-    access_char_array_at(10, x);
+    access_char_array_at(10, global_char_arr);
     assert(0);
 }
 
-/** When in doubt - change debug flag to 1 in address sanitizer runtime and check prints **/
+/** Change debug flag to 1 in address sanitizer runtime and check prints **/
 int main(){
     for(int i = 0; i < sizeof(tests_arr) / sizeof(struct test); i++){
         pid_t pid = fork();
@@ -155,6 +151,6 @@ int main(){
     }
 }
 
-void access_char_array_at(size_t i, char* a){
+void access_char_array_at(size_t i, volatile char* a){
     a[i] = 'e';
 }
