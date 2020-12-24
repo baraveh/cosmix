@@ -15,6 +15,8 @@
 
 volatile char global_char_arr[8] __attribute__((annotate("address_sanitizer"))) = {'a','b','c','d','e','f','g','\0'};
 volatile char global_int_arr[8] __attribute__((annotate("address_sanitizer"))) = {1,2,3,4,5,6,7,8};
+volatile char global_char __attribute__((annotate("address_sanitizer"))) = 'a';
+
 
 extern void* __cosmix_address_sanitizer_annotation(void* ptr);
 void legal_heap_accesses();
@@ -119,13 +121,14 @@ void legal_global_accesses(){
     global_char_arr[0] = 'a';
     global_char_arr[1] = 'b';
     global_char_arr[2] = 'c';
-    printf("%s", global_char_arr);
+    printf("%s\n", global_char_arr);
     global_int_arr[0] = 1;
     global_int_arr[1] = 1;
     global_int_arr[7] = 1;
     for(int i = 0; i < 8; i++){
-        printf("%d", global_int_arr[i]);
+        printf("%d\n", global_int_arr[i]);
     }
+    printf("%c", global_char);
     exit(0);
 }
 
