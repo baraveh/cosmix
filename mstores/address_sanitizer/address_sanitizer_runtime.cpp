@@ -3,7 +3,7 @@
 //
 
 
-#define SCALE_BITS (6)
+#define SCALE_BITS (3)
 #define SCALE (1<<SCALE_BITS)
 #define REDZONE_BYTES (SCALE) //must be scale aligned
 #define MEMORY_SIZE (1<<30)
@@ -58,8 +58,8 @@ std::pair<bool, byte*> is_allowed(void* ptr, long size){
     byte* curr_shadow_byte;
 
     // special handling of the first sequence in case ptr isn't scale aligned
-    if((uintptr_t)curr_byte % SCALE){
-        long sequence_bytes = size + (((uintptr_t)curr_byte % SCALE));
+    if((unsigned long long)curr_byte % SCALE){
+        long sequence_bytes = size + (((unsigned long long)curr_byte % SCALE));
         curr_shadow_byte = get_shadow_byte(curr_byte);
         if(sequence_bytes < SCALE){
             // the entire access is wholly contained in one sequence
