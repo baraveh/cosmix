@@ -111,7 +111,7 @@ endif
 ######## samples Objects ########
 
 address_sanitizer.bc : address_sanitizer_runtime.cpp
-	$(CLANG_PATH)/clang++ $(Samples_Cpp_Flags) -fpie -fPIC $(Samples_Include_Paths) -emit-llvm -c $< -o $@
+	$(CLANG_PATH)/clang++ $(Samples_Cpp_Flags) -fpie -fPIC $(Samples_Include_Paths) -emit-llvm -c -g $< -o $@
 
 clean:
 	rm -f *.a *.o *.bc

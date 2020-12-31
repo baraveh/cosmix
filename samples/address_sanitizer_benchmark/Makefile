@@ -10,7 +10,7 @@ cosmix:
 	make -C ../../mstores -f Makefile SDK_BUILD="-DSCONE_BUILD" NO_COUNTERS="-DNO_COUNTERS" RELEASE_BUILD="-DRELEASE_BUILD" SUVM_MIN_PTR_SIZE="-DSUVM_MIN_PTR_SIZE=1" SUVM_MAX_PTR_SIZE="-DSUVM_MAX_PTR_SIZE=1073741824" ORAM_BITS="-DORAM_BITS=28";
 
 address_sanitizer: test.c cosmix
-	$(LLVM_BIN)/clang -O3 -emit-llvm -c test.c "-DADDRESS_SANITIZER_TEST" -o test.bc
+	$(LLVM_BIN)/clang -O3 -emit-llvm -c test.c "-DADDRESS_SANITIZER_TEST" -o -g test.bc
 	$(LLVM_BIN)/llvm-link test.bc ../../runtime/cosmix_runtime.bc ../../mstores/address_sanitizer/address_sanitizer.bc ../../mstores/common/common.bc -o test_wrappers.bc
 	$(LLVM_BIN)/opt < test_wrappers.bc -gvn -gvn-hoist -gvn-sink -loop-simplify -licm > test_loop_simplify.bc
 	$(LLVM_BIN)/opt -load ../../pass/cosmix.so < test_loop_simplify.bc -cosmix -replace_all_allocators=false -code_analysis=false -config_file=$(current_dir)/address_sanitizer.json > test_inst.bc
