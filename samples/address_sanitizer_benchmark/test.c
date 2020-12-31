@@ -30,6 +30,7 @@ void access_char_array_at(size_t, volatile char*);
 void legal_global_accesses();
 void left_global_overflow();
 void right_global_overflow();
+void large_allocations();
 
 struct test{
     char name[32];
@@ -39,6 +40,7 @@ struct test{
         {"Left Heap Overflow", left_heap_overflow},
         {"Right Heap Overflow", right_heap_overflow},
         {"Heap Access After Free", heap_access_after_free},
+        {"Large Heap Allocations", large_allocations},
         {"Legal Stack Access", legal_stack_accesses},
         {"Left Stack Overflow", left_stack_overflow},
         {"Right Stack Overflow", right_stack_overflow},
@@ -144,6 +146,13 @@ void right_global_overflow(){
     access_char_array_at(10, global_char_arr);
     assert(0);
     printf("%s", global_char_arr);
+}
+
+void large_allocations(){
+    char* x = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*1024*1024));
+    for(int i = 0; i < 1024; i++){
+        x[i*1024] = 'a';
+    }
 }
 
 /** Change debug flag to 1 in address sanitizer runtime and check prints **/
