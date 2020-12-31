@@ -7,7 +7,7 @@
 #define SCALE (1<<SCALE_BITS)
 #define REDZONE_BYTES (SCALE) //must be scale aligned
 #define MEMORY_SIZE (1<<30)
-#define DEBUG 0
+#define DEBUG 1
 #define debug_print(fmt, ...) \
             do { if (DEBUG) {fprintf(stderr, "***Debug*** - "); fprintf(stderr, fmt, __VA_ARGS__);} } while (0)
 
@@ -45,7 +45,8 @@ unsigned long round_up_to_scale_aligned(unsigned long num){
 }
 
 byte* get_shadow_byte(void* addr){
-    return (byte*) ((((uintptr_t) addr)>>SCALE_BITS) + g_shadow_mem); //(Addr>>3) + Offset
+    unsigned long long address = (unsigned long long) addr;
+    return &(g_shadow_mem[(unsigned long long) address/SCALE]); //(Addr>>SCALE) + Offset
 }
 
 std::pair<bool, byte*> is_allowed(void* ptr, long size){
@@ -183,15 +184,15 @@ void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
         return nullptr;
     }
     byte* start_redzone = ptr;
-    printf("redzone start\n");
+
     mark_as_redzone(start_redzone);
-    printf("pointer arithmetic\n");
+
     byte* actual_ptr = ptr + REDZONE_BYTES;
-    printf("actual pointer\n");
+
     mark_as_allocated(actual_ptr, size);
-    printf("pointer arithmetic\n");
+
     byte* end_redzone = actual_ptr + round_up_to_scale_aligned(size);
-    printf("redzone end\n");
+
     mark_as_redzone(end_redzone);
     return actual_ptr;
 }
