@@ -64,7 +64,7 @@ std::pair<bool, byte*> is_allowed(void* ptr, long size){
         if(sequence_bytes < SCALE){
             // the entire access is wholly contained in one sequence
             debug_print("address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + size, *(curr_shadow_byte));
-            return std::pair<bool, byte*>((*(curr_shadow_byte)) >= size, curr_byte);
+            return std::pair<bool, byte*>((*(curr_shadow_byte)) >= sequence_bytes, curr_byte);
         }
         debug_print("address range %p - %p: shadow byte is %d\n", curr_byte, curr_byte + SCALE, *(curr_shadow_byte));
         if(*(curr_shadow_byte) != SCALE){
