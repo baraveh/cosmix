@@ -7,7 +7,7 @@
 #define SCALE (1<<SCALE_BITS)
 #define REDZONE_BYTES (SCALE) //must be scale aligned
 #define MEMORY_SIZE (1<<30)
-#define DEBUG 1
+#define DEBUG 0
 #define debug_print(fmt, ...) \
             do { if (DEBUG) {fprintf(stderr, "***Debug*** - "); fprintf(stderr, fmt, __VA_ARGS__);} } while (0)
 
@@ -182,15 +182,15 @@ void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
         return nullptr;
     }
     byte* start_redzone = ptr;
-    debug_print("redzone start\n");
+    printf("redzone start\n");
     mark_as_redzone(start_redzone);
-    debug_print("pointer arithmetic\n");
+    printf("pointer arithmetic\n");
     byte* actual_ptr = ptr + REDZONE_BYTES;
-    debug_print("actual pointer\n");
+    printf("actual pointer\n");
     mark_as_allocated(actual_ptr, size);
-    debug_print("pointer arithmetic\n");
+    printf("pointer arithmetic\n");
     byte* end_redzone = actual_ptr + round_up_to_scale_aligned(size);
-    debug_print("redzone end\n");
+    printf("redzone end\n");
     mark_as_redzone(end_redzone);
     return actual_ptr;
 }
