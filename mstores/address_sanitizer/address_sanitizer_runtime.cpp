@@ -151,6 +151,7 @@ int address_sanitizer_mstore_init(void *priv_data) {
         debug_print("mmap failed with %d - %s\n", errno, strerror(errno));
         return -errno;
     }
+    debug_print("address sanitizer is initialized, shadow mem starts at %p and ends at %p\n", g_shadow_mem, g_shadow_mem + g_shadow_mem_size);
     return 0;
 }
 
