@@ -142,6 +142,7 @@ int address_sanitizer_mstore_init(void *priv_data) {
         return -errno;
     }
     mem_limit.rlim_cur = MEMORY_SIZE;
+    mem_limit.rlim_max = MEMORY_SIZE;
     if(setrlimit(RLIMIT_AS, &mem_limit) != 0){
         return -errno;
     }
