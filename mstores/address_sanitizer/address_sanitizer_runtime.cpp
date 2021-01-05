@@ -2,16 +2,6 @@
 // Created by baraveh on 11/5/20.
 //
 
-
-#define SCALE_BITS (3)
-#define SCALE (1<<SCALE_BITS)
-#define REDZONE_BYTES (SCALE) //must be scale aligned
-#define DEBUG 1
-#define OVERCOMMIT_COMMAND "echo 1 > /proc/sys/vm/overcommit_memory > /dev/null 2>&1"
-#define UNDO_OVERCOMMIT_COMMAND "echo 0 > /proc/sys/vm/overcommit_memory"
-#define debug_print(fmt, ...) \
-            do { if (DEBUG) {fprintf(stderr, "***Debug*** - "); fprintf(stderr, fmt, __VA_ARGS__);} } while (0)
-
 #include "address_sanitizer_runtime.h"
 #include <sys/mman.h>
 #include <sys/resource.h>
@@ -22,6 +12,10 @@
 #include <utility>
 #include <stdlib.h>
 
+#define OVERCOMMIT_COMMAND "sysctl vm.overcommit_memory=1"
+#define UNDO_OVERCOMMIT_COMMAND "sysctl vm.overcommit_memory=0"
+#define debug_print(fmt, ...) \
+            do { if (DEBUG) {fprintf(stderr, "***Debug*** - "); fprintf(stderr, fmt, __VA_ARGS__);} } while (0)
 /* array of bytes, each byte represent an <scale> byte sequence in the address space
  * for each byte in the shadow mem - 0 means that all 8 bytes of the corresponding application
 memory region are unaddressable; k (1 ≤ k ≤ SCALE) means that
