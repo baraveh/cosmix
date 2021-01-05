@@ -140,7 +140,8 @@ int address_sanitizer_mstore_init(void *priv_data) {
         return -1;
     }
     system(OVERCOMMIT_COMMAND); //allows to allocate a large continuous amount of mem, must execute as superuser
-    g_shadow_mem_size = ((unsigned long long) 1)<<(sizeof(void*)*8 - SCALE_BITS);
+    unsigned int address_bits = sizeof(void*)*8 >= 48 ? 48 : sizeof(void*)*8; //assuming a 64 bit system uses up to 48 bit of the address
+    g_shadow_mem_size = ((unsigned long long) 1)<<(address_bits - SCALE_BITS);
     g_shadow_mem = (byte*) mmap(nullptr, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     if(g_shadow_mem == MAP_FAILED){
         debug_print("shadow mem size is %llu\n", g_shadow_mem_size);
