@@ -6,8 +6,9 @@
 #define SCALE_BITS (3)
 #define SCALE (1<<SCALE_BITS)
 #define REDZONE_BYTES (SCALE) //must be scale aligned
-#define MEMORY_SIZE (1<<30)
 #define DEBUG 1
+#define OVERCOMMIT_COMMAND "echo 1 > /proc/sys/vm/overcommit_memory"
+#define UNDO_OVERCOMMIT_COMMAND "echo 0 > /proc/sys/vm/overcommit_memory"
 #define debug_print(fmt, ...) \
             do { if (DEBUG) {fprintf(stderr, "***Debug*** - "); fprintf(stderr, fmt, __VA_ARGS__);} } while (0)
 
@@ -19,6 +20,7 @@
 #include <iostream>
 #include <errno.h>
 #include <utility>
+#include <stdlib.h>
 
 /* array of bytes, each byte represent an <scale> byte sequence in the address space
  * for each byte in the shadow mem - 0 means that all 8 bytes of the corresponding application
@@ -28,7 +30,7 @@ Slight modification from the address sanitizer paper - instead of 0 for 8-addres
  */
 typedef char byte;
 byte* g_shadow_mem;
-unsigned long g_shadow_mem_size = 0;
+unsigned long long g_shadow_mem_size = 0;
 
 unsigned long round_up_to_scale_aligned(unsigned long);
 byte* get_shadow_byte(void* addr);
@@ -137,19 +139,11 @@ int address_sanitizer_mstore_init(void *priv_data) {
     if (g_shadow_mem_size != 0) {
         return -1;
     }
-    struct rlimit mem_limit;
-    if(getrlimit(RLIMIT_AS, &mem_limit) != 0){
-        return -errno;
-    }
-    mem_limit.rlim_cur = MEMORY_SIZE;
-    mem_limit.rlim_max = MEMORY_SIZE;
-    if(setrlimit(RLIMIT_AS, &mem_limit) != 0){
-        return -errno;
-    }
-    g_shadow_mem_size = (mem_limit.rlim_cur)/SCALE;
-    g_shadow_mem = (byte*) mmap((void*) (MEMORY_SIZE - g_shadow_mem_size), g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+    system(OVERCOMMIT_COMMAND); //allows to allocate a large continuous amount of mem, must execute as superuser
+    g_shadow_mem_size = ((unsigned long long) 1)<<(sizeof(void*)*4 - SCALE_BITS);
+    g_shadow_mem = (byte*) mmap(nullptr, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     if(g_shadow_mem == MAP_FAILED){
-        debug_print("memory size is %lu, shadow mem size is %lu\n", mem_limit.rlim_cur, g_shadow_mem_size);
+        debug_print("memory size is %llu, shadow mem size is %llu\n", ((unsigned long long) 1)<<(sizeof(void*)*4), g_shadow_mem_size);
         debug_print("mmap failed with %d - %s\n", errno, strerror(errno));
         return -errno;
     }
@@ -161,6 +155,7 @@ int address_sanitizer_mstore_cleanup(){
     int res = munmap(g_shadow_mem, g_shadow_mem_size);
     if (res == 0){
         g_shadow_mem_size = 0;
+        system(UNDO_OVERCOMMIT_COMMAND);
         return 0;
     }
     return -1;
@@ -169,13 +164,11 @@ int address_sanitizer_mstore_cleanup(){
 void address_sanitizer_mpf_handler_d(void *ptr, void *dst, size_t s){
     debug_print("page fault - copying %zu bytes from %p to %p\n", s, ptr, dst);
     assert_access(ptr, s);
-    //memcpy(dst, ptr, s);
 }
 
 void address_sanitizer_write_back(void *ptr, void *dst, size_t s){
     debug_print("write back size of %zu bytes from %p to %p\n", s, ptr, dst);
     assert_access(ptr, s);
-    //memcpy(dst, ptr, s);
 }
 
 void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
@@ -185,15 +178,10 @@ void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
         return nullptr;
     }
     byte* start_redzone = ptr;
-
     mark_as_redzone(start_redzone);
-
     byte* actual_ptr = ptr + REDZONE_BYTES;
-
     mark_as_allocated(actual_ptr, size);
-
     byte* end_redzone = actual_ptr + round_up_to_scale_aligned(size);
-
     mark_as_redzone(end_redzone);
     return actual_ptr;
 }
