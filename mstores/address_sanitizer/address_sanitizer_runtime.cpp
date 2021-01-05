@@ -140,10 +140,10 @@ int address_sanitizer_mstore_init(void *priv_data) {
         return -1;
     }
     system(OVERCOMMIT_COMMAND); //allows to allocate a large continuous amount of mem, must execute as superuser
-    g_shadow_mem_size = ((unsigned long long) 1)<<(sizeof(void*)*4 - SCALE_BITS);
+    g_shadow_mem_size = ((unsigned long long) 1)<<(sizeof(void*)*8 - SCALE_BITS);
     g_shadow_mem = (byte*) mmap(nullptr, g_shadow_mem_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
     if(g_shadow_mem == MAP_FAILED){
-        debug_print("memory size is %llu, shadow mem size is %llu\n", ((unsigned long long) 1)<<(sizeof(void*)*4), g_shadow_mem_size);
+        debug_print("shadow mem size is %llu\n", g_shadow_mem_size);
         debug_print("mmap failed with %d - %s\n", errno, strerror(errno));
         return -errno;
     }
