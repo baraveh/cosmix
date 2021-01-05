@@ -7,7 +7,7 @@
 #define SCALE (1<<SCALE_BITS)
 #define REDZONE_BYTES (SCALE) //must be scale aligned
 #define DEBUG 1
-#define OVERCOMMIT_COMMAND "echo 1 > /proc/sys/vm/overcommit_memory"
+#define OVERCOMMIT_COMMAND "echo 1 > /proc/sys/vm/overcommit_memory > /dev/null 2>&1"
 #define UNDO_OVERCOMMIT_COMMAND "echo 0 > /proc/sys/vm/overcommit_memory"
 #define debug_print(fmt, ...) \
             do { if (DEBUG) {fprintf(stderr, "***Debug*** - "); fprintf(stderr, fmt, __VA_ARGS__);} } while (0)
