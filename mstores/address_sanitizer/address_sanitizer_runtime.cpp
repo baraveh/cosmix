@@ -26,14 +26,14 @@ typedef char byte;
 byte* g_shadow_mem;
 unsigned long long g_shadow_mem_size = 0;
 
-unsigned long round_up_to_scale_aligned(unsigned long);
+unsigned long round_up_to_nearest_scale_aligned(unsigned long);
 byte* get_shadow_byte(void* addr);
 void assert_access(void* ptr, size_t s);
 void mark_as_redzone(void* red_zone_ptr);
 void mark_as_allocated(void* ptr, size_t size);
 void mark_as_freed(void* ptr, size_t size);
 
-unsigned long round_up_to_scale_aligned(unsigned long num){
+unsigned long round_up_to_nearest_scale_aligned(unsigned long num){
     if(num%SCALE == 0){
         return num;
     }
@@ -68,7 +68,7 @@ std::pair<bool, byte*> is_allowed(void* ptr, long size){
         }
     }
 
-    for(curr_byte = (byte*) round_up_to_scale_aligned((uintptr_t) curr_byte); curr_byte < (((byte*)ptr) + size); curr_byte += SCALE){
+    for(curr_byte = (byte*) round_up_to_nearest_scale_aligned((uintptr_t) curr_byte); curr_byte < (((byte*)ptr) + size); curr_byte += SCALE){
         curr_shadow_byte = get_shadow_byte(curr_byte);
         if((((byte*)ptr) + size) - curr_byte < SCALE){
             //last sequence, and ptr + size isn't scale aligned
@@ -167,8 +167,8 @@ void address_sanitizer_write_back(void *ptr, void *dst, size_t s){
 }
 
 void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
-    debug_print("allocating %lu bytes, + %d redzone bytes\n", round_up_to_scale_aligned(size), 2*REDZONE_BYTES);
-    byte* ptr = (byte*) malloc(round_up_to_scale_aligned(size) + 2*REDZONE_BYTES);
+    debug_print("allocating %lu bytes, + %d redzone bytes\n", round_up_to_nearest_scale_aligned(size), 2*REDZONE_BYTES);
+    byte* ptr = (byte*) malloc(round_up_to_nearest_scale_aligned(size) + 2*REDZONE_BYTES);
     if(ptr == nullptr){
         return nullptr;
     }
@@ -176,14 +176,14 @@ void *address_sanitizer_mstore_alloc(size_t size, void *private_data){
     mark_as_redzone(start_redzone);
     byte* actual_ptr = ptr + REDZONE_BYTES;
     mark_as_allocated(actual_ptr, size);
-    byte* end_redzone = actual_ptr + round_up_to_scale_aligned(size);
+    byte* end_redzone = actual_ptr + round_up_to_nearest_scale_aligned(size);
     mark_as_redzone(end_redzone);
     return actual_ptr;
 }
 
 void address_sanitizer_mstore_free(void *ptr){
     byte* start_redzone = ((byte*)ptr) - REDZONE_BYTES;
-    mark_as_freed(start_redzone, 2*REDZONE_BYTES + round_up_to_scale_aligned(address_sanitizer_mstore_alloc_size(ptr)));
+    mark_as_freed(start_redzone, 2*REDZONE_BYTES + round_up_to_nearest_scale_aligned(address_sanitizer_mstore_alloc_size(ptr)));
     free(start_redzone);
 }
 
@@ -197,7 +197,7 @@ size_t address_sanitizer_mstore_alloc_size(void *ptr){
             return 0;
         }
         alloc_size += SCALE - ((uintptr_t)(curr_byte) % SCALE);
-        curr_byte = (byte*) round_up_to_scale_aligned((uintptr_t) curr_byte);
+        curr_byte = (byte*) round_up_to_nearest_scale_aligned((uintptr_t) curr_byte);
         curr_shadow_byte = get_shadow_byte(curr_byte);
     }
     while(*(curr_shadow_byte) > 0){
