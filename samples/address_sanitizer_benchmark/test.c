@@ -13,20 +13,40 @@
 #include <assert.h>
 #include <sys/wait.h>
 
+volatile char global_char_arr[8] __attribute__((annotate("address_sanitizer"))) = {'a','b','c','d','e','f','g','\0'};
+volatile char global_int_arr[8] __attribute__((annotate("address_sanitizer"))) = {1,2,3,4,5,6,7,8};
+volatile char global_char __attribute__((annotate("address_sanitizer"))) = 'a';
+
+
 extern void* __cosmix_address_sanitizer_annotation(void* ptr);
 void legal_heap_accesses();
 void left_heap_overflow();
 void right_heap_overflow();
 void heap_access_after_free();
+void legal_stack_accesses();
+void left_stack_overflow();
+void right_stack_overflow();
+void access_char_array_at(size_t, volatile char*);
+void legal_global_accesses();
+void left_global_overflow();
+void right_global_overflow();
+void large_allocations();
 
 struct test{
-    char name[64];
+    char name[32];
     void (*fun_ptr)();
 } tests_arr[] = {
         {"Legal Heap Access", legal_heap_accesses},
         {"Left Heap Overflow", left_heap_overflow},
         {"Right Heap Overflow", right_heap_overflow},
-        {"Heap Access After Free", heap_access_after_free}
+        {"Heap Access After Free", heap_access_after_free},
+        {"Large Heap Allocations", large_allocations},
+        {"Legal Stack Access", legal_stack_accesses},
+        {"Left Stack Overflow", left_stack_overflow},
+        {"Right Stack Overflow", right_stack_overflow},
+        {"Legal Global Access", legal_global_accesses},
+        {"Left Global Overflow", left_global_overflow},
+        {"Right Global Overflow", right_global_overflow}
 };
 
 
@@ -68,7 +88,74 @@ void heap_access_after_free(){
     assert(0);
 }
 
-/** When in doubt - change debug flag to 1 in address sanitizer runtime and check prints **/
+void legal_stack_accesses(){
+    volatile char x[26] __attribute__((annotate("address_sanitizer")));
+    x[0] = 'a';
+    x[1] = 'b';
+    x[2] = 'c';
+    x[25] = 'z';
+    volatile char y[8] __attribute__((annotate("address_sanitizer")));
+    for(int i = 0; i < 8; i++){
+        y[i] = 'a';
+    }
+    volatile int z[8] __attribute__((annotate("address_sanitizer")));
+    for(int i = 0; i < 8; i ++){
+        z[i] = i;
+    }
+    exit(0);
+}
+
+void left_stack_overflow(){
+    volatile char x[1] __attribute__((annotate("address_sanitizer")));
+    x[0] = 'a';
+    access_char_array_at(-1, x);
+    assert(0);
+}
+
+void right_stack_overflow(){
+    volatile char x[1] __attribute__((annotate("address_sanitizer")));
+    x[0] = 'a';
+    access_char_array_at(2, x);
+    assert(0);
+}
+
+void legal_global_accesses(){
+    global_char_arr[0] = 'a';
+    global_char_arr[1] = 'b';
+    global_char_arr[2] = 'c';
+    printf("%s\n", global_char_arr);
+    global_int_arr[0] = 1;
+    global_int_arr[1] = 1;
+    global_int_arr[7] = 1;
+    for(int i = 0; i < 8; i++){
+        printf("%d\n", global_int_arr[i]);
+    }
+    printf("%c\n", global_char);
+    exit(0);
+}
+
+void left_global_overflow(){
+    global_char_arr[0] = 'b';
+    access_char_array_at(-1, global_char_arr);
+    assert(0);
+    printf("%s", global_char_arr);
+}
+
+void right_global_overflow(){
+    global_char_arr[0] = 'b';
+    access_char_array_at(10, global_char_arr);
+    assert(0);
+    printf("%s", global_char_arr);
+}
+
+void large_allocations(){
+    char* x = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*1024*1024));
+    for(int i = 0; i < 1024; i++){
+        x[i*1024] = 'a';
+    }
+}
+
+/** Change debug flag to 1 in address sanitizer runtime and check prints **/
 int main(){
     for(int i = 0; i < sizeof(tests_arr) / sizeof(struct test); i++){
         pid_t pid = fork();
@@ -79,7 +166,12 @@ int main(){
         else{
             int status;
             waitpid(pid, &status, 0);
-            printf("%s Test Finished\n", tests_arr[i].name);
+            printf("%s Test Finished Exit Code %d\n", tests_arr[i].name, WEXITSTATUS(status));
         }
     }
+}
+
+void access_char_array_at(size_t i, volatile char* a){
+    a[i] = 'e';
+    printf("%c\n", a[i]);
 }

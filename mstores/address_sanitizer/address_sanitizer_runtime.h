@@ -15,6 +15,10 @@
 extern "C" {
 #endif
 
+#define SCALE_BITS (3) //can adjust between 3 and 6 (inclusive bounds)
+#define SCALE (1<<SCALE_BITS)
+#define REDZONE_BYTES (SCALE) //must be scale aligned
+#define DEBUG 0
 
 int address_sanitizer_mstore_init(void* priv_data);
 

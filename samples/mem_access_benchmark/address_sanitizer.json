@@ -1,0 +1,11 @@
+{
+  "mstores": [
+    {
+      "name" : "address_sanitizer",
+      "annotation_symbol": "address_sanitizer",
+      "function_annotation_name": "__cosmix_address_sanitizer_annotation",
+      "type": "direct",
+      "storage": "mem"
+    }
+  ]
+}
