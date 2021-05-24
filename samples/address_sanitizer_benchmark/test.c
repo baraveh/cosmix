@@ -43,10 +43,10 @@ struct test{
         {"Large Heap Allocations", large_allocations},
         {"Legal Stack Access", legal_stack_accesses},
         {"Left Stack Overflow", left_stack_overflow},
-        {"Right Stack Overflow", right_stack_overflow},
+        {"Right Stack Overflow", right_stack_overflow} /*,
         {"Legal Global Access", legal_global_accesses},
         {"Left Global Overflow", left_global_overflow},
-        {"Right Global Overflow", right_global_overflow}
+        {"Right Global Overflow", right_global_overflow} */ //Leaving global pointers to future work
 };
 
 
