@@ -160,7 +160,9 @@ void large_allocations(){
     for(int i = 0; i < 1024; i++){
         x[i*1024] = i;
     }
-    fprintf(output, "%d", i);
+    for(int i = 0 ; i < 1024 ; i++ ) {
+      fprintf(output, "%d\n", x[(rand())%1024]);
+    }
     fclose(output);
     exit(0);
 }
