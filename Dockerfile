@@ -40,7 +40,7 @@ RUN ./sgx_linux_x64_sdk_2.6.100.51363.bin < temp
 
 # Fetch COSMIX
 WORKDIR /home/user/dev
-RUN git clone "https://github.com/acsl-technion/cosmix"
+RUN git clone "https://github.com/baraveh/cosmix"
 WORKDIR /home/user/dev/cosmix
 
 # Build SVF

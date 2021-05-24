@@ -994,7 +994,7 @@ INLINEATTR void* __cosmix_link_direct_template(const void* ptr, int ptr_size, ch
 
 	// Note: for now, just assert it, otherwise should divide to two separate requests
 	//
-	ASSERT(mpage_size >= ptr_size);
+	//ASSERT(mpage_size >= ptr_size);
 
 	//void* dest = __cosmix_get_mstore_direct_buffer(mpage_size);
     void* dest = nullptr;
