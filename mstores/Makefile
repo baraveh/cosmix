@@ -9,7 +9,7 @@ all:
 	$(MAKE) -C storage $@;
 	$(MAKE) -C oram $@;
 	$(MAKE) -C address_sanitizer $@;
-	$(CLANG_PATH)/llvm-link common/common.bc suvm/suvm_runtime.bc storage/storage_runtime.bc oram/oram.bc -o mstores.bc 
+	$(CLANG_PATH)/llvm-link common/common.bc suvm/suvm_runtime.bc storage/storage_runtime.bc oram/oram.bc address_sanitizer/address_sanitizer.bc -o mstores.bc 
 	
 else
 all:
