@@ -120,6 +120,7 @@ void right_stack_overflow(){
 }
 
 void legal_global_accesses(){
+    FILE* output = fopen("/dev/null", "w");
     global_char_arr[0] = 'a';
     global_char_arr[1] = 'b';
     global_char_arr[2] = 'c';
@@ -128,31 +129,40 @@ void legal_global_accesses(){
     global_int_arr[1] = 1;
     global_int_arr[7] = 1;
     for(int i = 0; i < 8; i++){
-        printf("%d\n", global_int_arr[i]);
+        fprintf(output, "%d\n", global_int_arr[i]);
     }
-    printf("%c\n", global_char);
+    fprintf(output, "%c\n", global_char);
+    fclose(output);
     exit(0);
 }
 
 void left_global_overflow(){
+    FILE* output = fopen("/dev/null", "w");
     global_char_arr[0] = 'b';
     access_char_array_at(-1, global_char_arr);
     assert(0);
-    printf("%s", global_char_arr);
+    fprintf(output, "%s", global_char_arr);
+    fclose(output);
 }
 
 void right_global_overflow(){
+    FILE* output = fopen("/dev/null", "w");
     global_char_arr[0] = 'b';
     access_char_array_at(10, global_char_arr);
     assert(0);
-    printf("%s", global_char_arr);
+    fprintf(output, "%s", global_char_arr);
+    fclose(output);
 }
 
 void large_allocations(){
-    char* x = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*1024*1024));
+    FILE* output = fopen("/dev/null", "w");
+    int* x = (int*)__cosmix_address_sanitizer_annotation(malloc(sizeof(int)*1024*1024));
     for(int i = 0; i < 1024; i++){
-        x[i*1024] = 'a';
+        x[i*1024] = i;
     }
+    fprintf(output, "%d", i);
+    fclose(output);
+    exit(0);
 }
 
 /** Change debug flag to 1 in address sanitizer runtime and check prints **/
