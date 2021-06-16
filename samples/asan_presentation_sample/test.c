@@ -24,12 +24,12 @@ struct test{
 
 
 void demo(){
-    volatile char secret_password[8] __attribute__((annotate("address_sanitizer"))) = "12345678";
-    volatile char user_buffer[8] __attribute__((annotate("address_sanitizer")));
-    printf("Welcome to ASan's demo, please enter an input to my 8 byte array!");
+    
+    char* user_buffer = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*8));
+    printf("Welcome to ASan's demo, please enter an input to my 8 byte array!\n");
     scanf("%s",user_buffer);
-    printf("You entered: %s", user_buffer);
-    printf("Have a nice day!");
+    printf("You entered: %s\n", user_buffer);
+    printf("Have a nice day!\n");
     exit(0);
 }
 
