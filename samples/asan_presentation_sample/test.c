@@ -24,28 +24,17 @@ struct test{
 
 
 void demo(){
-    
     char* user_buffer = (char*)__cosmix_address_sanitizer_annotation(malloc(sizeof(char)*8));
     printf("Welcome to ASan's demo, please enter an input to my 8 byte array!\n");
     scanf("%s",user_buffer);
     printf("You entered: %s\n", user_buffer);
     printf("Have a nice day!\n");
-    exit(0);
 }
 
 
 /** Change debug flag to 1 in address sanitizer runtime and check prints **/
 int main(){
     while(1){
-        printf("Starting Demo\n"); 
-        pid_t pid = fork();
-        if(pid == 0){
-            tests_arr[0].fun_ptr();
-        }
-        else{
-            int status;
-            waitpid(pid, &status, 0);
-            printf("Process Finished with Exit Code %d\n",WEXITSTATUS(status));
-        }
+        demo();
     }
 }
