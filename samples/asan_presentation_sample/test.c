@@ -28,14 +28,14 @@ void demo(){
     volatile char user_buffer[8] __attribute__((annotate("address_sanitizer")));
     printf("Welcome to ASan's demo, please enter an input to my 8 byte array!");
     scanf("%s",user_buffer);
-    printf("Have a nice day!")
-    exit();
+    printf("Have a nice day!");
+    exit(0);
 }
 
 
 /** Change debug flag to 1 in address sanitizer runtime and check prints **/
 int main(){
-    while(true){
+    while(1){
         printf("Starting Demo\n"); 
         pid_t pid = fork();
         if(pid == 0){
