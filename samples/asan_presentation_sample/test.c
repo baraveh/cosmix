@@ -24,10 +24,11 @@ struct test{
 
 
 void demo(){
-    volatile char secret_password[8] __attribute__((annotate("address_sanitizer"))) = "1234567";
+    volatile char secret_password[8] __attribute__((annotate("address_sanitizer"))) = "12345678";
     volatile char user_buffer[8] __attribute__((annotate("address_sanitizer")));
     printf("Welcome to ASan's demo, please enter an input to my 8 byte array!");
     scanf("%s",user_buffer);
+    printf("You entered: %s", user_buffer);
     printf("Have a nice day!");
     exit(0);
 }
